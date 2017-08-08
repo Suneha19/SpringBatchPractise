@@ -1,0 +1,143 @@
+2017-08-08 19:19:03.771  INFO 8700 --- [           main] c.q.qiwk.etl.QiwkEtlApplication          : Starting QiwkEtlApplication on AcnADMIN-PC with PID 8700 (C:\Users\ACNuseABHILASH\Downloads\Acnovate\Qiwk\QiwkEtl\target\classes started by ACNuseABHILASH in C:\Users\ACNuseABHILASH\Downloads\Acnovate\Qiwk\QiwkEtl)
+2017-08-08 19:19:03.776  INFO 8700 --- [           main] c.q.qiwk.etl.QiwkEtlApplication          : No active profile set, falling back to default profiles: default
+2017-08-08 19:19:03.897  INFO 8700 --- [           main] ationConfigEmbeddedWebApplicationContext : Refreshing org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext@17c386de: startup date [Tue Aug 08 19:19:03 IST 2017]; root of context hierarchy
+2017-08-08 19:19:05.745  WARN 8700 --- [           main] o.s.c.a.ConfigurationClassEnhancer       : @Bean method ScopeConfiguration.stepScope is non-static and returns an object assignable to Spring's BeanFactoryPostProcessor interface. This will result in a failure to process annotations such as @Autowired, @Resource and @PostConstruct within the method's declaring @Configuration class. Add the 'static' modifier to this method to avoid these container lifecycle issues; see @Bean javadoc for complete details.
+2017-08-08 19:19:05.779  WARN 8700 --- [           main] o.s.c.a.ConfigurationClassEnhancer       : @Bean method ScopeConfiguration.jobScope is non-static and returns an object assignable to Spring's BeanFactoryPostProcessor interface. This will result in a failure to process annotations such as @Autowired, @Resource and @PostConstruct within the method's declaring @Configuration class. Add the 'static' modifier to this method to avoid these container lifecycle issues; see @Bean javadoc for complete details.
+2017-08-08 19:19:07.345  INFO 8700 --- [           main] s.b.c.e.t.TomcatEmbeddedServletContainer : Tomcat initialized with port(s): 8080 (http)
+2017-08-08 19:19:07.411  INFO 8700 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2017-08-08 19:19:07.413  INFO 8700 --- [           main] org.apache.catalina.core.StandardEngine  : Starting Servlet Engine: Apache Tomcat/8.5.16
+2017-08-08 19:19:07.613  INFO 8700 --- [ost-startStop-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2017-08-08 19:19:07.615  INFO 8700 --- [ost-startStop-1] o.s.web.context.ContextLoader            : Root WebApplicationContext: initialization completed in 3721 ms
+2017-08-08 19:19:07.889  INFO 8700 --- [ost-startStop-1] o.s.b.w.servlet.ServletRegistrationBean  : Mapping servlet: 'dispatcherServlet' to [/]
+2017-08-08 19:19:07.907  INFO 8700 --- [ost-startStop-1] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'characterEncodingFilter' to: [/*]
+2017-08-08 19:19:07.908  INFO 8700 --- [ost-startStop-1] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'hiddenHttpMethodFilter' to: [/*]
+2017-08-08 19:19:07.908  INFO 8700 --- [ost-startStop-1] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'httpPutFormContentFilter' to: [/*]
+2017-08-08 19:19:07.909  INFO 8700 --- [ost-startStop-1] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'requestContextFilter' to: [/*]
+2017-08-08 19:19:08.936  INFO 8700 --- [           main] o.s.s.concurrent.ThreadPoolTaskExecutor  : Initializing ExecutorService 
+2017-08-08 19:19:08.947  INFO 8700 --- [           main] o.s.s.concurrent.ThreadPoolTaskExecutor  : Initializing ExecutorService  'taskExecutor'
+2017-08-08 19:19:09.450  INFO 8700 --- [           main] s.w.s.m.m.a.RequestMappingHandlerAdapter : Looking for @ControllerAdvice: org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext@17c386de: startup date [Tue Aug 08 19:19:03 IST 2017]; root of context hierarchy
+2017-08-08 19:19:09.601  INFO 8700 --- [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/qiwk/etl/{batchJobType}],methods=[GET]}" onto public void com.qiwkreport.qiwk.etl.controller.JobLaunchingController.launch(java.lang.String) throws org.springframework.batch.core.launch.NoSuchJobException,org.springframework.batch.core.launch.JobInstanceAlreadyExistsException,org.springframework.batch.core.JobParametersInvalidException
+2017-08-08 19:19:09.623  INFO 8700 --- [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/error]}" onto public org.springframework.http.ResponseEntity<java.util.Map<java.lang.String, java.lang.Object>> org.springframework.boot.autoconfigure.web.BasicErrorController.error(javax.servlet.http.HttpServletRequest)
+2017-08-08 19:19:09.624  INFO 8700 --- [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/error],produces=[text/html]}" onto public org.springframework.web.servlet.ModelAndView org.springframework.boot.autoconfigure.web.BasicErrorController.errorHtml(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+2017-08-08 19:19:09.701  INFO 8700 --- [           main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/webjars/**] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2017-08-08 19:19:09.701  INFO 8700 --- [           main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/**] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2017-08-08 19:19:09.781  INFO 8700 --- [           main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/**/favicon.ico] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2017-08-08 19:19:11.597  INFO 8700 --- [           main] o.s.jdbc.datasource.init.ScriptUtils     : Executing SQL script from class path resource [org/springframework/batch/core/schema-oracle10g.sql]
+2017-08-08 19:19:11.698  INFO 8700 --- [           main] o.s.jdbc.datasource.init.ScriptUtils     : Executed SQL script from class path resource [org/springframework/batch/core/schema-oracle10g.sql] in 101 ms.
+2017-08-08 19:19:11.982  INFO 8700 --- [           main] o.s.j.e.a.AnnotationMBeanExporter        : Registering beans for JMX exposure on startup
+2017-08-08 19:19:12.444 ERROR 8700 --- [           main] o.a.coyote.http11.Http11NioProtocol      : Failed to start end point associated with ProtocolHandler ["http-nio-8080"]
+
+java.net.BindException: Address already in use: bind
+	at sun.nio.ch.Net.bind0(Native Method)
+	at sun.nio.ch.Net.bind(Unknown Source)
+	at sun.nio.ch.Net.bind(Unknown Source)
+	at sun.nio.ch.ServerSocketChannelImpl.bind(Unknown Source)
+	at sun.nio.ch.ServerSocketAdaptor.bind(Unknown Source)
+	at org.apache.tomcat.util.net.NioEndpoint.bind(NioEndpoint.java:210)
+	at org.apache.tomcat.util.net.AbstractEndpoint.start(AbstractEndpoint.java:990)
+	at org.apache.coyote.AbstractProtocol.start(AbstractProtocol.java:635)
+	at org.apache.catalina.connector.Connector.startInternal(Connector.java:1022)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:150)
+	at org.apache.catalina.core.StandardService.addConnector(StandardService.java:225)
+	at org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainer.addPreviouslyRemovedConnectors(TomcatEmbeddedServletContainer.java:250)
+	at org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainer.start(TomcatEmbeddedServletContainer.java:193)
+	at org.springframework.boot.context.embedded.EmbeddedWebApplicationContext.startEmbeddedServletContainer(EmbeddedWebApplicationContext.java:297)
+	at org.springframework.boot.context.embedded.EmbeddedWebApplicationContext.finishRefresh(EmbeddedWebApplicationContext.java:145)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:546)
+	at org.springframework.boot.context.embedded.EmbeddedWebApplicationContext.refresh(EmbeddedWebApplicationContext.java:122)
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:693)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:360)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:303)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1118)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1107)
+	at com.qiwkreport.qiwk.etl.QiwkEtlApplication.main(QiwkEtlApplication.java:12)
+
+2017-08-08 19:19:12.449 ERROR 8700 --- [           main] o.apache.catalina.core.StandardService   : Failed to start connector [Connector[HTTP/1.1-8080]]
+
+org.apache.catalina.LifecycleException: Failed to start component [Connector[HTTP/1.1-8080]]
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:167)
+	at org.apache.catalina.core.StandardService.addConnector(StandardService.java:225)
+	at org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainer.addPreviouslyRemovedConnectors(TomcatEmbeddedServletContainer.java:250)
+	at org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainer.start(TomcatEmbeddedServletContainer.java:193)
+	at org.springframework.boot.context.embedded.EmbeddedWebApplicationContext.startEmbeddedServletContainer(EmbeddedWebApplicationContext.java:297)
+	at org.springframework.boot.context.embedded.EmbeddedWebApplicationContext.finishRefresh(EmbeddedWebApplicationContext.java:145)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:546)
+	at org.springframework.boot.context.embedded.EmbeddedWebApplicationContext.refresh(EmbeddedWebApplicationContext.java:122)
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:693)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:360)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:303)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1118)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1107)
+	at com.qiwkreport.qiwk.etl.QiwkEtlApplication.main(QiwkEtlApplication.java:12)
+Caused by: org.apache.catalina.LifecycleException: service.getName(): "Tomcat";  Protocol handler start failed
+	at org.apache.catalina.connector.Connector.startInternal(Connector.java:1029)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:150)
+	... 13 common frames omitted
+Caused by: java.net.BindException: Address already in use: bind
+	at sun.nio.ch.Net.bind0(Native Method)
+	at sun.nio.ch.Net.bind(Unknown Source)
+	at sun.nio.ch.Net.bind(Unknown Source)
+	at sun.nio.ch.ServerSocketChannelImpl.bind(Unknown Source)
+	at sun.nio.ch.ServerSocketAdaptor.bind(Unknown Source)
+	at org.apache.tomcat.util.net.NioEndpoint.bind(NioEndpoint.java:210)
+	at org.apache.tomcat.util.net.AbstractEndpoint.start(AbstractEndpoint.java:990)
+	at org.apache.coyote.AbstractProtocol.start(AbstractProtocol.java:635)
+	at org.apache.catalina.connector.Connector.startInternal(Connector.java:1022)
+	... 14 common frames omitted
+
+2017-08-08 19:19:12.475  INFO 8700 --- [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2017-08-08 19:19:12.644  INFO 8700 --- [           main] utoConfigurationReportLoggingInitializer : 
+
+Error starting ApplicationContext. To display the auto-configuration report re-run your application with 'debug' enabled.
+2017-08-08 19:19:12.649 ERROR 8700 --- [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+The Tomcat connector configured to listen on port 8080 failed to start. The port may already be in use or the connector may be misconfigured.
+
+Action:
+
+Verify the connector's configuration, identify and stop any process that's listening on port 8080, or configure this application to listen on another port.
+
+2017-08-08 19:19:12.649  INFO 8700 --- [           main] ationConfigEmbeddedWebApplicationContext : Closing org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext@17c386de: startup date [Tue Aug 08 19:19:03 IST 2017]; root of context hierarchy
+2017-08-08 19:19:12.654  INFO 8700 --- [           main] o.s.j.e.a.AnnotationMBeanExporter        : Unregistering JMX-exposed beans on shutdown
+2017-08-08 19:19:12.659  INFO 8700 --- [           main] o.s.s.concurrent.ThreadPoolTaskExecutor  : Shutting down ExecutorService 'taskExecutor'
+2017-08-08 19:21:23.222  INFO 7012 --- [           main] c.q.qiwk.etl.QiwkEtlApplication          : Starting QiwkEtlApplication on AcnADMIN-PC with PID 7012 (C:\Users\ACNuseABHILASH\Downloads\Acnovate\Qiwk\QiwkEtl\target\classes started by ACNuseABHILASH in C:\Users\ACNuseABHILASH\Downloads\Acnovate\Qiwk\QiwkEtl)
+2017-08-08 19:21:23.226  INFO 7012 --- [           main] c.q.qiwk.etl.QiwkEtlApplication          : No active profile set, falling back to default profiles: default
+2017-08-08 19:21:23.323  INFO 7012 --- [           main] ationConfigEmbeddedWebApplicationContext : Refreshing org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext@5af97850: startup date [Tue Aug 08 19:21:23 IST 2017]; root of context hierarchy
+2017-08-08 19:21:24.996  WARN 7012 --- [           main] o.s.c.a.ConfigurationClassEnhancer       : @Bean method ScopeConfiguration.stepScope is non-static and returns an object assignable to Spring's BeanFactoryPostProcessor interface. This will result in a failure to process annotations such as @Autowired, @Resource and @PostConstruct within the method's declaring @Configuration class. Add the 'static' modifier to this method to avoid these container lifecycle issues; see @Bean javadoc for complete details.
+2017-08-08 19:21:25.016  WARN 7012 --- [           main] o.s.c.a.ConfigurationClassEnhancer       : @Bean method ScopeConfiguration.jobScope is non-static and returns an object assignable to Spring's BeanFactoryPostProcessor interface. This will result in a failure to process annotations such as @Autowired, @Resource and @PostConstruct within the method's declaring @Configuration class. Add the 'static' modifier to this method to avoid these container lifecycle issues; see @Bean javadoc for complete details.
+2017-08-08 19:21:26.222  INFO 7012 --- [           main] s.b.c.e.t.TomcatEmbeddedServletContainer : Tomcat initialized with port(s): 9000 (http)
+2017-08-08 19:21:26.247  INFO 7012 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2017-08-08 19:21:26.249  INFO 7012 --- [           main] org.apache.catalina.core.StandardEngine  : Starting Servlet Engine: Apache Tomcat/8.5.16
+2017-08-08 19:21:26.453  INFO 7012 --- [ost-startStop-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2017-08-08 19:21:26.455  INFO 7012 --- [ost-startStop-1] o.s.web.context.ContextLoader            : Root WebApplicationContext: initialization completed in 3136 ms
+2017-08-08 19:21:26.885  INFO 7012 --- [ost-startStop-1] o.s.b.w.servlet.ServletRegistrationBean  : Mapping servlet: 'dispatcherServlet' to [/]
+2017-08-08 19:21:26.889  INFO 7012 --- [ost-startStop-1] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'characterEncodingFilter' to: [/*]
+2017-08-08 19:21:26.889  INFO 7012 --- [ost-startStop-1] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'hiddenHttpMethodFilter' to: [/*]
+2017-08-08 19:21:26.889  INFO 7012 --- [ost-startStop-1] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'httpPutFormContentFilter' to: [/*]
+2017-08-08 19:21:26.889  INFO 7012 --- [ost-startStop-1] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'requestContextFilter' to: [/*]
+2017-08-08 19:21:27.689  INFO 7012 --- [           main] o.s.s.concurrent.ThreadPoolTaskExecutor  : Initializing ExecutorService 
+2017-08-08 19:21:27.698  INFO 7012 --- [           main] o.s.s.concurrent.ThreadPoolTaskExecutor  : Initializing ExecutorService  'taskExecutor'
+2017-08-08 19:21:28.191  INFO 7012 --- [           main] s.w.s.m.m.a.RequestMappingHandlerAdapter : Looking for @ControllerAdvice: org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext@5af97850: startup date [Tue Aug 08 19:21:23 IST 2017]; root of context hierarchy
+2017-08-08 19:21:28.358  INFO 7012 --- [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/qiwk/etl/{batchJobType}],methods=[GET]}" onto public void com.qiwkreport.qiwk.etl.controller.JobLaunchingController.launch(java.lang.String) throws org.springframework.batch.core.launch.NoSuchJobException,org.springframework.batch.core.launch.JobInstanceAlreadyExistsException,org.springframework.batch.core.JobParametersInvalidException
+2017-08-08 19:21:28.364  INFO 7012 --- [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/error]}" onto public org.springframework.http.ResponseEntity<java.util.Map<java.lang.String, java.lang.Object>> org.springframework.boot.autoconfigure.web.BasicErrorController.error(javax.servlet.http.HttpServletRequest)
+2017-08-08 19:21:28.365  INFO 7012 --- [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/error],produces=[text/html]}" onto public org.springframework.web.servlet.ModelAndView org.springframework.boot.autoconfigure.web.BasicErrorController.errorHtml(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+2017-08-08 19:21:28.497  INFO 7012 --- [           main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/webjars/**] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2017-08-08 19:21:28.497  INFO 7012 --- [           main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/**] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2017-08-08 19:21:28.556  INFO 7012 --- [           main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/**/favicon.ico] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2017-08-08 19:21:30.108  INFO 7012 --- [           main] o.s.jdbc.datasource.init.ScriptUtils     : Executing SQL script from class path resource [org/springframework/batch/core/schema-oracle10g.sql]
+2017-08-08 19:21:30.228  INFO 7012 --- [           main] o.s.jdbc.datasource.init.ScriptUtils     : Executed SQL script from class path resource [org/springframework/batch/core/schema-oracle10g.sql] in 120 ms.
+2017-08-08 19:21:30.464  INFO 7012 --- [           main] o.s.j.e.a.AnnotationMBeanExporter        : Registering beans for JMX exposure on startup
+2017-08-08 19:21:30.692  INFO 7012 --- [           main] s.b.c.e.t.TomcatEmbeddedServletContainer : Tomcat started on port(s): 9000 (http)
+2017-08-08 19:21:30.702  INFO 7012 --- [           main] c.q.qiwk.etl.QiwkEtlApplication          : Started QiwkEtlApplication in 7.853 seconds (JVM running for 8.415)
+2017-08-08 19:21:43.297  INFO 7012 --- [nio-9000-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring FrameworkServlet 'dispatcherServlet'
+2017-08-08 19:21:43.297  INFO 7012 --- [nio-9000-exec-1] o.s.web.servlet.DispatcherServlet        : FrameworkServlet 'dispatcherServlet': initialization started
+2017-08-08 19:21:43.326  INFO 7012 --- [nio-9000-exec-1] o.s.web.servlet.DispatcherServlet        : FrameworkServlet 'dispatcherServlet': initialization completed in 28 ms
+2017-08-08 19:22:16.698  INFO 7012 --- [nio-9000-exec-4] o.s.b.c.l.support.SimpleJobOperator      : Checking status of job with name=job
+2017-08-08 19:22:16.734  INFO 7012 --- [nio-9000-exec-4] o.s.b.c.r.s.JobRepositoryFactoryBean     : No database type set, using meta data indicating: ORACLE
+2017-08-08 19:22:16.892  INFO 7012 --- [nio-9000-exec-4] o.s.b.c.l.support.SimpleJobLauncher      : No TaskExecutor has been set, defaulting to synchronous executor.
