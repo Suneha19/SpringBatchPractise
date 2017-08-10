@@ -3,12 +3,17 @@
  */
 package com.qiwkreport.qiwk.etl.configuration;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
 import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.batch.core.explore.JobExplorer;
@@ -17,6 +22,9 @@ import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.support.SimpleJobOperator;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.database.JdbcPagingItemReader;
+import org.springframework.batch.item.database.Order;
+import org.springframework.batch.item.database.support.OraclePagingQueryProvider;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +36,6 @@ import org.springframework.context.annotation.Configuration;
 import com.qiwkreport.qiwk.etl.domain.Employee;
 import com.qiwkreport.qiwk.etl.domain.NewEmployee;
 import com.qiwkreport.qiwk.etl.processor.EmployeeProcessor;
-import com.qiwkreport.qiwk.etl.reader.EmployeeReader;
 import com.qiwkreport.qiwk.etl.util.ColumnRangePartitioner;
 import com.qiwkreport.qiwk.etl.writer.EmployeeWriter;
 
@@ -52,9 +59,6 @@ public class JobConfiguration implements ApplicationContextAware{
 	private TaskExecutorConfiguration taskExecutorConfiguration;
 	
 	@Autowired
-	private EmployeeReader employeeReader; 
-	
-	@Autowired
 	private EmployeeWriter employeeWriter; 
 	
 	@Autowired
@@ -76,6 +80,9 @@ public class JobConfiguration implements ApplicationContextAware{
 	
 	@Value("${partition.grid.size}")
 	private int gridSize;
+	
+    @Value("#{'${qiwk.etl.jobs}'.split(',')}") 
+	private List<String> qiwkJobs;
 	
 	@Bean
 	public JobRegistryBeanPostProcessor jobRegistrar() throws Exception{
@@ -130,7 +137,7 @@ public class JobConfiguration implements ApplicationContextAware{
 	public Step slaveStep() {
 		return stepBuilderFactory.get("slaveStep")
 				.<Employee, NewEmployee>chunk(chunkSize)
-				.reader(employeeReader.pagingItemReader(null, null))
+				.reader(pagingItemReader(null, null))
 				.processor(employeeProcessor())
 				.writer(employeeWriter.customItemWriter())
 				.build();
@@ -138,7 +145,7 @@ public class JobConfiguration implements ApplicationContextAware{
 
 	@Bean
 	public Job job() {
-		return jobBuilderFactory.get("job-qiwkEtl-FR")
+		return jobBuilderFactory.get("FR")
 				.start(masterStep())
 				.build();
 	}
@@ -153,4 +160,33 @@ public class JobConfiguration implements ApplicationContextAware{
 		this.applicationContext=applicationContext;
 	}
 
+	
+	@Bean
+	@StepScope
+	public JdbcPagingItemReader<Employee> pagingItemReader(@Value("#{stepExecutionContext['minValue']}") Long minvalue,
+			@Value("#{stepExecutionContext['maxValue']}") Long maxvalue) {
+
+		JdbcPagingItemReader<Employee> reader = new JdbcPagingItemReader<Employee>();
+		reader.setDataSource(this.dataSource);
+		// this should be equal to chunk size for the performance reasons.
+		reader.setFetchSize(chunkSize);
+		reader.setRowMapper((resultSet, i) -> {
+			return new Employee(resultSet.getLong("id"), 
+					resultSet.getString("firstName"),
+					resultSet.getString("lastName"));
+		});
+
+		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
+		provider.setSelectClause("id, firstName, lastName");
+		provider.setFromClause("from Employee");
+		provider.setWhereClause("where id>=" + minvalue + " and id < " + maxvalue);
+
+		Map<String, Order> sortKeys = new HashMap<>(1);
+		sortKeys.put("id", Order.ASCENDING);
+		provider.setSortKeys(sortKeys);
+
+		reader.setQueryProvider(provider);
+
+		return reader;
+	}
 }

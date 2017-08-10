@@ -11,5 +11,4 @@ public class QiwkEtlApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(QiwkEtlApplication.class, args);
 	}
-	
 }

@@ -22,7 +22,7 @@ public class JobLaunchingController {
 	@ResponseStatus(code = HttpStatus.ACCEPTED)
 	public void launch(@PathVariable String batchJobType)
 			throws NoSuchJobException, JobInstanceAlreadyExistsException, JobParametersInvalidException {
-		jobOperator.start("job", batchJobType);
+		jobOperator.start(batchJobType,null);
 	}
 
 }

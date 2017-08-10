@@ -1,6 +1,6 @@
 package com.qiwkreport.qiwk.etl.domain;
 
-public class NewEmployee extends Object{
+public class NewEmployee{
 
 	private long id;
 	private String firstName;
