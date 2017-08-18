@@ -13,6 +13,10 @@ public class NewEmployee{
 		this.lastName = lastName;
 	}
 
+	public NewEmployee() {
+		super();
+	}
+
 	public long getId() {
 		return id;
 	}

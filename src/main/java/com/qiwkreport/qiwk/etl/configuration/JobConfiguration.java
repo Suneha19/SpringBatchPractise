@@ -1,6 +1,6 @@
 /**
  * 
- */
+ *//*
 package com.qiwkreport.qiwk.etl.configuration;
 
 import java.util.HashMap;
@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.JobRegistry;
@@ -22,6 +24,9 @@ import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.support.SimpleJobOperator;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
+import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.batch.item.database.Order;
 import org.springframework.batch.item.database.support.OraclePagingQueryProvider;
@@ -32,19 +37,23 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 
 import com.qiwkreport.qiwk.etl.domain.Employee;
+import com.qiwkreport.qiwk.etl.domain.EmployeeRowMapper;
 import com.qiwkreport.qiwk.etl.domain.NewEmployee;
 import com.qiwkreport.qiwk.etl.processor.EmployeeProcessor;
 import com.qiwkreport.qiwk.etl.util.ColumnRangePartitioner;
 import com.qiwkreport.qiwk.etl.writer.EmployeeWriter;
 
-/**
+*//**
  * @author Abhilash
  *
- */
+ *//*
 @Configuration
 public class JobConfiguration implements ApplicationContextAware{
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(JobConfiguration.class);
 
 	@Autowired
 	private JobBuilderFactory jobBuilderFactory;
@@ -106,13 +115,6 @@ public class JobConfiguration implements ApplicationContextAware{
 		return simpleJobOperator;
 		
 	}
-	
-	/** 
-	 * @category JdbcPagingitemReader
-	 * We are using JdbcPagingitemReader for reading data from source database.
-	 * This supports multiple threads can read from the data source at the same
-	 * time. It is also going to track the last key that was read.
-	 */
 
 	@Bean
 	public ColumnRangePartitioner partitioner() {
@@ -120,33 +122,35 @@ public class JobConfiguration implements ApplicationContextAware{
 		partitioner.setColumn("id");
 		partitioner.setDataSource(this.dataSource);
 		partitioner.setTable("Employee");
+		LOGGER.info("partitioner---->"+partitioner);
 		return partitioner;
 	}
 
 	@Bean
-	public Step masterStep() {
+	public Step masterStep() throws Exception {
 		return stepBuilderFactory.get("masterStep")
 				.partitioner(slaveStep().getName(), partitioner())
 				.step(slaveStep())
 				.gridSize(gridSize)
-				.taskExecutor(taskExecutorConfiguration.taskExecutor())
+				.taskExecutor(new SimpleAsyncTaskExecutor())
 				.build();
 	}
 
 	@Bean
-	public Step slaveStep() {
+	public Step slaveStep() throws Exception {
 		return stepBuilderFactory.get("slaveStep")
 				.<Employee, NewEmployee>chunk(chunkSize)
-				.reader(pagingItemReader(null, null))
-				.processor(employeeProcessor())
-				.writer(employeeWriter.customItemWriter())
+				.reader(pagingItemReader2())
+			//	.processor(employeeProcessor())
+			//	.writer(employeeWriter.customItemWriter())
+				.writer(customItemWriter())
 				.build();
 	}
 
 	@Bean
-	public Job job() {
+	public Job job() throws Exception {
 		return jobBuilderFactory.get("FR")
-				.start(masterStep())
+				.start(slaveStep())
 				.build();
 	}
 	
@@ -163,9 +167,7 @@ public class JobConfiguration implements ApplicationContextAware{
 	
 	@Bean
 	@StepScope
-	public JdbcPagingItemReader<Employee> pagingItemReader(@Value("#{stepExecutionContext['minValue']}") Long minvalue,
-			@Value("#{stepExecutionContext['maxValue']}") Long maxvalue) {
-
+	public JdbcPagingItemReader<Employee> pagingItemReader2() {
 		JdbcPagingItemReader<Employee> reader = new JdbcPagingItemReader<Employee>();
 		reader.setDataSource(this.dataSource);
 		// this should be equal to chunk size for the performance reasons.
@@ -179,14 +181,60 @@ public class JobConfiguration implements ApplicationContextAware{
 		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
 		provider.setSelectClause("id, firstName, lastName");
 		provider.setFromClause("from Employee");
-		provider.setWhereClause("where id>=" + minvalue + " and id < " + maxvalue);
 
 		Map<String, Order> sortKeys = new HashMap<>(1);
 		sortKeys.put("id", Order.ASCENDING);
 		provider.setSortKeys(sortKeys);
 
 		reader.setQueryProvider(provider);
-
+		System.out.println("reader--->"+reader);
 		return reader;
 	}
-}
+	
+	*//** 
+	 * @throws Exception 
+	 * @category JdbcPagingitemReader
+	 * We are using JdbcPagingitemReader for reading data from source database.
+	 * This supports multiple threads can read from the data source at the same
+	 * time. It is also going to track the last key that was read.
+	 *//*
+	
+	@Bean
+	@StepScope
+	public JdbcPagingItemReader<Employee> pagingItemReader(@Value("#{stepExecutionContext['minValue']}") Long minvalue,
+			@Value("#{stepExecutionContext['maxValue']}") Long maxvalue) throws Exception {
+		System.out.println("reading " + minvalue + " to " + maxvalue);
+		JdbcPagingItemReader<Employee> reader = new JdbcPagingItemReader<Employee>();
+		reader.setDataSource(this.dataSource);
+		// this should be equal to chunk size for the performance reasons.
+		reader.setFetchSize(chunkSize);
+		reader.setRowMapper(new EmployeeRowMapper());
+
+		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
+		provider.setSelectClause("id, firstName, lastName");
+		provider.setFromClause("from Employee");
+		provider.setWhereClause("where id<=" + minvalue + " and id > " + maxvalue);
+
+		Map<String, Order> sortKeys = new HashMap<>(1);
+		sortKeys.put("id", Order.ASCENDING);
+		provider.setSortKeys(sortKeys);
+
+		reader.setQueryProvider(provider);
+		LOGGER.info("reader--->"+reader);
+		System.out.println("reader--->"+reader);
+		reader.afterPropertiesSet();
+		return reader;
+	}
+	
+	@StepScope
+	@Bean
+	public ItemWriter<NewEmployee> customItemWriter() {
+		JdbcBatchItemWriter<NewEmployee> writer = new JdbcBatchItemWriter<NewEmployee>();
+		writer.setDataSource(dataSource);
+		writer.setSql("INSERT INTO NEWEMPLOYEE values (:id, :firstName ,:lastName)");
+		writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
+		writer.afterPropertiesSet();
+		System.out.println("writer---->"+writer);
+		return writer;
+	}
+}*/

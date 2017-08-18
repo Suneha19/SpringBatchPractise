@@ -1,6 +1,7 @@
 package com.qiwkreport.qiwk.etl.writer;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
@@ -16,6 +17,7 @@ public class EmployeeWriter {
 	@Autowired
 	public DataSource dataSource;
 
+	@StepScope
 	@Bean
 	public ItemWriter<NewEmployee> customItemWriter() {
 		JdbcBatchItemWriter<NewEmployee> writer = new JdbcBatchItemWriter<NewEmployee>();

@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -17,19 +19,29 @@ import org.springframework.jdbc.core.JdbcTemplate;
  *
  */
 public class ColumnRangePartitioner implements Partitioner {
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(ColumnRangePartitioner.class);
 
 	private JdbcOperations jdbcTemplate;
+
 	private String table;
+
 	private String column;
 
-	public void setJdbcTemplate(JdbcOperations jdbcTemplate) {
-		this.jdbcTemplate = jdbcTemplate;
-	}
-
+	/**
+	 * The name of the SQL table the data are in.
+	 *
+	 * @param table the name of the table
+	 */
 	public void setTable(String table) {
 		this.table = table;
 	}
 
+	/**
+	 * The name of the column to partition.
+	 *
+	 * @param column the column name.
+	 */
 	public void setColumn(String column) {
 		this.column = column;
 	}
@@ -37,8 +49,7 @@ public class ColumnRangePartitioner implements Partitioner {
 	/**
 	 * The data source for connecting to the database.
 	 *
-	 * @param dataSource
-	 *            a {@link DataSource}
+	 * @param dataSource a {@link DataSource}
 	 */
 	public void setDataSource(DataSource dataSource) {
 		jdbcTemplate = new JdbcTemplate(dataSource);
@@ -70,8 +81,14 @@ public class ColumnRangePartitioner implements Partitioner {
 			if (end >= max) {
 				end = max;
 			}
-			value.putInt("minValue", start);
-			value.putInt("maxValue", end);
+			value.putInt("fromId", start);
+			value.putInt("toId", end);
+			// give each thread a name, thread 1,2,3
+			value.putString("name", "Thread" + number);
+			result.put("partition" + number, value);
+			System.out.println("\nStarting : Thread" + number);
+			System.out.println("fromId : " + start);
+			System.out.println("toId : " +end);
 			start += targetSize;
 			end += targetSize;
 			number++;
