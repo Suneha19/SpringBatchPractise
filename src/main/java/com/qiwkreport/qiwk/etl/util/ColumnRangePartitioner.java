@@ -7,8 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -20,8 +18,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
  */
 public class ColumnRangePartitioner implements Partitioner {
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(ColumnRangePartitioner.class);
-
 	private JdbcOperations jdbcTemplate;
 
 	private String table;
