@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 import com.qiwkreport.qiwk.etl.domain.NewEmployee;
 
 @Component
-public class EmployeeWriter {
-	
+public class Writer {
+
 	@Autowired
 	public DataSource dataSource;
 
@@ -23,6 +23,18 @@ public class EmployeeWriter {
 		JdbcBatchItemWriter<NewEmployee> writer = new JdbcBatchItemWriter<NewEmployee>();
 		writer.setDataSource(dataSource);
 		writer.setSql("INSERT INTO NEWEMPLOYEE values (:id, :firstName ,:lastName)");
+		writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
+		writer.afterPropertiesSet();
+		return writer;
+	}
+
+	@StepScope
+	@Bean
+	public ItemWriter<NewEmployee> slaveWriter() {
+		JdbcBatchItemWriter<NewEmployee> writer = new JdbcBatchItemWriter<NewEmployee>();
+		writer.setDataSource(dataSource);
+		writer.setSql(
+				"INSERT INTO NEWEMPLOYEE values (:id, :firstName ,:lastName, :village, :street , :city, :district, :state, :pincode, :managerid, :managerName)");
 		writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
 		writer.afterPropertiesSet();
 		return writer;

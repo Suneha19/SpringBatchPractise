@@ -1,9 +1,6 @@
 package com.qiwkreport.qiwk.etl.configuration;
 
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,13 +20,6 @@ import org.springframework.batch.core.launch.support.SimpleJobOperator;
 import org.springframework.batch.core.partition.PartitionHandler;
 import org.springframework.batch.core.partition.support.TaskExecutorPartitionHandler;
 import org.springframework.batch.core.repository.JobRepository;
-import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
-import org.springframework.batch.item.database.JdbcBatchItemWriter;
-import org.springframework.batch.item.database.JdbcPagingItemReader;
-import org.springframework.batch.item.database.Order;
-import org.springframework.batch.item.database.PagingQueryProvider;
-import org.springframework.batch.item.database.support.OraclePagingQueryProvider;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,8 +31,10 @@ import org.springframework.core.task.TaskExecutor;
 
 import com.qiwkreport.qiwk.etl.domain.Employee;
 import com.qiwkreport.qiwk.etl.domain.NewEmployee;
-import com.qiwkreport.qiwk.etl.processor.EmployeeProcessor;
+import com.qiwkreport.qiwk.etl.processor.Processor;
+import com.qiwkreport.qiwk.etl.reader.Reader;
 import com.qiwkreport.qiwk.etl.util.ColumnRangePartitioner;
+import com.qiwkreport.qiwk.etl.writer.Writer;
 
 @Configuration
 public class FRJobConfiguration implements ApplicationContextAware{
@@ -72,6 +64,12 @@ public class FRJobConfiguration implements ApplicationContextAware{
 	
 	@Autowired
 	private JobLauncher jobLauncher;
+	
+	@Autowired
+	private Reader reader;
+
+	@Autowired
+	private Writer writer;
 
 	private ApplicationContext applicationContext;
   
@@ -108,7 +106,7 @@ public class FRJobConfiguration implements ApplicationContextAware{
 	public Job FR() throws Exception {
 		return jobBuilderFactory.get("FR")
 				.incrementer(new RunIdIncrementer())
-				.start(masterStep())
+				.start(slaveStep())
 				.build();
 	}
 
@@ -133,9 +131,9 @@ public class FRJobConfiguration implements ApplicationContextAware{
 	@Bean
 	public Step slaveStep() {
 		return stepBuilderFactory.get("slave").<Employee, NewEmployee>chunk(chunkSize)
-				.reader(slaveReader(null, null, null))
+				.reader(reader.slaveReader(null, null, null))
 				.processor(slaveProcessor())
-				.writer(slaveWriter())
+				.writer(writer.slaveWriter())
 				.build();
 	}
 
@@ -155,11 +153,11 @@ public class FRJobConfiguration implements ApplicationContextAware{
 
 	@Bean
 	@StepScope
-	public EmployeeProcessor slaveProcessor() {
-		return new EmployeeProcessor();
+	public Processor slaveProcessor() {
+		return new Processor();
 	}
 
-	@Bean
+/*	@Bean
 	@StepScope
 	public JdbcPagingItemReader<Employee> slaveReader(
 			@Value("#{stepExecutionContext[fromId]}") final String fromId,
@@ -204,9 +202,8 @@ public class FRJobConfiguration implements ApplicationContextAware{
 		writer.setSql("INSERT INTO NEWEMPLOYEE values (:id, :firstName ,:lastName)");
 		writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
 		writer.afterPropertiesSet();
-		System.out.println("writer---->" + writer);
 		return writer;
-	}
+	}*/
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
