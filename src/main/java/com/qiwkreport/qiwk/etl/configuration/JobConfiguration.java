@@ -47,6 +47,7 @@ import com.qiwkreport.qiwk.etl.domain.Employee;
 import com.qiwkreport.qiwk.etl.domain.EmployeeRowMapper;
 import com.qiwkreport.qiwk.etl.domain.NewEmployee;
 import com.qiwkreport.qiwk.etl.processor.EmployeeProcessor;
+import com.qiwkreport.qiwk.etl.processor.Processor;
 import com.qiwkreport.qiwk.etl.util.ColumnRangePartitioner;
 import com.qiwkreport.qiwk.etl.writer.EmployeeWriter;
 
@@ -174,7 +175,7 @@ public class JobConfiguration implements ApplicationContextAware{
 	
 	@Bean
 	public ItemProcessor<Employee, NewEmployee> employeeProcessor() {
-		return new EmployeeProcessor();
+		return new Processor();
 	}
 
 	@Override

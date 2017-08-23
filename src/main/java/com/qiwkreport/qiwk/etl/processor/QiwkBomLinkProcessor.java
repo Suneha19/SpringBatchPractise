@@ -1,4 +1,4 @@
-package com.qiwkreport.qiwk.etl.processor;
+/*package com.qiwkreport.qiwk.etl.processor;
 
 import org.springframework.batch.item.ItemProcessor;
 
@@ -16,3 +16,4 @@ public class QiwkBomLinkProcessor implements ItemProcessor<QiwkBOMLink, QiwkBOML
 	}
 
 }
+*/

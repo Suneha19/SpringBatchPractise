@@ -1,4 +1,4 @@
-package com.qiwkreport.qiwk.etl.reader;
+/*package com.qiwkreport.qiwk.etl.reader;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,10 +32,10 @@ public class Reader{
 	@Value("${data.chunk.size}")
 	private int chunkSize;
 
-	/**
+	*//**
 	 * {@code} The @StepScope annotation is very imp, as this instantiate this
 	 * bean in spring context only when this is loaded
-	 */
+	 *//*
 	@Bean
 	@StepScope
 	public JdbcPagingItemReader<Employee> pagingItemReader(@Value("#{stepExecutionContext['minValue']}") Long minvalue,
@@ -46,8 +46,8 @@ public class Reader{
 		// this should be equal to chunk size for the performance reasons.
 		reader.setFetchSize(chunkSize);
 		reader.setRowMapper((resultSet, i) -> {
-		/*	return new Employee(resultSet.getLong("id"), resultSet.getString("firstName"),
-					resultSet.getString("firstName"));*/
+			return new Employee(resultSet.getLong("id"), resultSet.getString("firstName"),
+					resultSet.getString("firstName"));
 			return null;
 		});
 
@@ -67,33 +67,85 @@ public class Reader{
 
 	@Bean
 	@StepScope
-	public JdbcPagingItemReader<Employee> slaveReader(
+	public JdbcPagingItemReader<Employee> slaveReader2(
 			@Value("#{stepExecutionContext[fromId]}") final String fromId,
 			@Value("#{stepExecutionContext[toId]}") final String toId,
-			@Value("#{stepExecutionContext[name]}") final String name) {
+			@Value("#{stepExecutionContext[name]}") final String name) throws Exception {
 
-		JdbcPagingItemReader<Employee> reader = new JdbcPagingItemReader<>();
-		reader.setDataSource(dataSource);
-		
-		reader.setQueryProvider(queryProvider());
-		Map<String, Object> parameterValues = new HashMap<>();
-		parameterValues.put("fromId", fromId);
-		parameterValues.put("toId", toId);
-		reader.setParameterValues(parameterValues);
-		reader.setPageSize(chunkSize);
-	/*	reader.setRowMapper((resultSet, i) -> {
+		System.out.println("fromId--->"+fromId);
+		System.out.println("toId--->"+toId);
+		System.out.println("name--->"+name);
+		JdbcPagingItemReader<Employee> reader = new JdbcPagingItemReader<Employee>();
+		reader.setDataSource(this.dataSource);
+		// the fetch size should be equal to chunk size for the performance reasons.
+		reader.setFetchSize(chunkSize);
+		reader.setRowMapper((resultSet, i) -> {
 			return new Employee(resultSet.getLong("id"), 
 					resultSet.getString("firstName"),
-					resultSet.getString("lastName"));
-		});*/
-		reader.setRowMapper(new BeanPropertyRowMapper<Employee>(Employee.class)) ;
+					resultSet.getString("lastName"),
+					resultSet.getString("village"),
+					resultSet.getString("street"),
+					resultSet.getString("city"),
+					resultSet.getString("district"),
+					resultSet.getString("state"),
+					resultSet.getString("pincode"),
+					resultSet.getString("managerid"),
+					resultSet.getString("managerName"));
+		});
+
+		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
+		provider.setSelectClause("id, firstName ,lastName, village, street , city, district, state, pincode, managerid, managerName");
+		provider.setFromClause("from Employee");
+		provider.setWhereClause("where id<=" + fromId + " and id > " + toId);
+
+		Map<String, Order> sortKeys = new HashMap<>(1);
+		sortKeys.put("id", Order.ASCENDING);
+		provider.setSortKeys(sortKeys);
+
+		reader.setQueryProvider(provider);
+		reader.afterPropertiesSet();
+		return reader;
+	}
+	
+	@Bean
+	@StepScope
+	public JdbcPagingItemReader<Employee> read() throws Exception {
+
+		JdbcPagingItemReader<Employee> reader = new JdbcPagingItemReader<Employee>();
+		reader.setDataSource(this.dataSource);
+		// the fetch size equal to chunk size for the performance reasons. 
+		reader.setFetchSize(chunkSize);
+		reader.setRowMapper((resultSet, i) -> {
+			return new Employee(resultSet.getLong("id"), 
+					resultSet.getString("firstName"),
+					resultSet.getString("lastName"),
+					resultSet.getString("village"),
+					resultSet.getString("street"),
+					resultSet.getString("city"),
+					resultSet.getString("district"),
+					resultSet.getString("state"),
+					resultSet.getString("pincode"),
+					resultSet.getString("managerid"),
+					resultSet.getString("managerName"));
+		});
+
+		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
+		provider.setSelectClause("id, firstName ,lastName, village, street , city, district, state, pincode, managerid, managerName");
+		provider.setFromClause("from Employee");
+
+		Map<String, Order> sortKeys = new HashMap<>(1);
+		sortKeys.put("id", Order.ASCENDING);
+		provider.setSortKeys(sortKeys);
+
+		reader.setQueryProvider(provider);
+		reader.afterPropertiesSet();
 		return reader;
 	}
  
 	@Bean
 	public PagingQueryProvider queryProvider() {
 		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
-		provider.setSelectClause("*");
+		provider.setSelectClause("id, firstName ,lastName, village, street , city, district, state, pincode, managerid, managerName");
 		provider.setFromClause("from Employee");
 		provider.setWhereClause("where id >= :fromId and id <= :toId");
 		Map<String, Order> sortKeys = new HashMap<>(1);
@@ -137,3 +189,4 @@ public class Reader{
 		return provider;
 	}
 }
+*/

@@ -1,4 +1,4 @@
-package com.qiwkreport.qiwk.etl.writer;
+/*package com.qiwkreport.qiwk.etl.writer;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -40,3 +40,4 @@ public class Writer {
 		return writer;
 	}
 }
+*/
