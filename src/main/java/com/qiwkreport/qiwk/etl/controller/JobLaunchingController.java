@@ -27,7 +27,7 @@ public class JobLaunchingController {
 	public String launch(@PathVariable String batchJobType)
 			throws NoSuchJobException, JobInstanceAlreadyExistsException, JobParametersInvalidException {
 		LOGGER.info("FR Job Started" + System.currentTimeMillis());
-		jobOperator.start(batchJobType,null);
+		jobOperator.start(batchJobType, null);
 		LOGGER.info("FR Job Finished" + System.currentTimeMillis());
 		return "FR Job Completed Sucessfully !";
 	}

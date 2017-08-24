@@ -1,10 +1,6 @@
-/**
- * 
- *//*
 package com.qiwkreport.qiwk.etl.configuration;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
@@ -41,25 +37,21 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 
-import com.qiwkreport.qiwk.etl.domain.Employee;
-import com.qiwkreport.qiwk.etl.domain.EmployeeRowMapper;
-import com.qiwkreport.qiwk.etl.domain.NewEmployee;
-import com.qiwkreport.qiwk.etl.processor.EmployeeProcessor;
-import com.qiwkreport.qiwk.etl.processor.Processor;
-import com.qiwkreport.qiwk.etl.util.ColumnRangePartitioner;
-import com.qiwkreport.qiwk.etl.writer.EmployeeWriter;
+import com.qiwkreport.qiwk.etl.domain.NewUser;
+import com.qiwkreport.qiwk.etl.domain.User;
+import com.qiwkreport.qiwk.etl.processor.UserProcessor;
+import com.qiwkreport.qiwk.etl.util.UserRangePartitioner;
 
-*//**
+/**
  * @author Abhilash
  *
- *//*
+ */
 @Configuration
 @EnableBatchProcessing
-public class JobConfiguration implements ApplicationContextAware{
+public class UserJobConfiguration implements ApplicationContextAware{
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(JobConfiguration.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(UserJobConfiguration.class);
 
 	@Autowired
 	private JobBuilderFactory jobBuilderFactory;
@@ -72,9 +64,6 @@ public class JobConfiguration implements ApplicationContextAware{
 	
 	@Autowired
 	private TaskExecutorConfiguration taskExecutorConfiguration;
-	
-	@Autowired
-	private EmployeeWriter employeeWriter; 
 	
 	@Autowired
 	private JobExplorer jobExplorer;
@@ -96,11 +85,8 @@ public class JobConfiguration implements ApplicationContextAware{
 	@Value("${partition.grid.size}")
 	private int gridSize;
 	
-    @Value("#{'${qiwk.etl.jobs}'.split(',')}") 
-	private List<String> qiwkJobs;
-	
 	@Bean
-	public JobRegistryBeanPostProcessor jobRegistrar() throws Exception{
+	public JobRegistryBeanPostProcessor userJobRegistrar() throws Exception{
 		JobRegistryBeanPostProcessor registrar=new JobRegistryBeanPostProcessor();
 		registrar.setJobRegistry(this.jobRegistry);
 		registrar.setBeanFactory(this.applicationContext.getAutowireCapableBeanFactory());
@@ -109,7 +95,7 @@ public class JobConfiguration implements ApplicationContextAware{
 	}
 	
 	@Bean
-	public JobOperator jobOperator() throws Exception{
+	public JobOperator userJobOperator() throws Exception{
 		SimpleJobOperator simpleJobOperator=new SimpleJobOperator();
 		simpleJobOperator.setJobLauncher(this.jobLauncher);
 		simpleJobOperator.setJobParametersConverter(new DefaultJobParametersConverter());
@@ -123,59 +109,54 @@ public class JobConfiguration implements ApplicationContextAware{
 	}
 
 	@Bean
-	public ColumnRangePartitioner partitioner() {
-		ColumnRangePartitioner partitioner = new ColumnRangePartitioner();
+	public UserRangePartitioner userPartitioner() {
+		UserRangePartitioner partitioner = new UserRangePartitioner();
 		partitioner.setColumn("id");
 		partitioner.setDataSource(this.dataSource);
-		partitioner.setTable("Employee");
-		LOGGER.info("partitioner---->"+partitioner);
+		partitioner.setTable("User");
 		return partitioner;
 	}
 
 	@Bean
-	public Step masterStep() throws Exception {
-		return stepBuilderFactory.get("masterStep")
-				.partitioner(slaveStep().getName(), partitioner())
-				.partitionHandler(masterSlaveHandler())
+	public Step userMasterStep() throws Exception {
+		return stepBuilderFactory
+				.get("userMasterStep")
+				.partitioner(userSlaveStep().getName(), userPartitioner())
+				.partitionHandler(userMasterSlaveHandler())
 	            .build();
 	}
 
-	  @Bean
-	  public PartitionHandler masterSlaveHandler() throws Exception {
-	    TaskExecutorPartitionHandler handler = new TaskExecutorPartitionHandler();
-	    handler.setGridSize(gridSize);
-	    handler.setTaskExecutor(taskExecutorConfiguration.taskExecutor());
-	    handler.setStep(slaveStep());
-	    try {
-	      handler.afterPropertiesSet();
-	    } catch (Exception e) {
-	      e.printStackTrace();
-	    }
-	    return handler;
-	  }
-	
 	@Bean
-	public Step slaveStep() throws Exception {
-		return stepBuilderFactory.get("slaveStep")
-				.<Employee, NewEmployee>chunk(chunkSize)
-				.reader(pagingItemReader(null,null,null))
-			.processor(employeeProcessor())
-			//.writer(employeeWriter.customItemWriter())
-				.writer(customItemWriter())
+	public PartitionHandler userMasterSlaveHandler() throws Exception {
+		TaskExecutorPartitionHandler handler = new TaskExecutorPartitionHandler();
+		handler.setGridSize(gridSize);
+		handler.setTaskExecutor(taskExecutorConfiguration.taskExecutor());
+		handler.setStep(userSlaveStep());
+		handler.afterPropertiesSet();
+		return handler;
+	}
+
+	@Bean
+	public Step userSlaveStep() throws Exception {
+		return stepBuilderFactory.get("userSlaveStep")
+				.<User, NewUser>chunk(chunkSize)
+				.reader(userItemReaderWithoutPartition())
+			    .processor(userProcessor())
+				.writer(userItemWriter())
 				.build();
 	}
 
 	@Bean
 	public Job job() throws Exception {
-		return jobBuilderFactory.get("FR")
+		return jobBuilderFactory.get("UserJob")
 				.incrementer(new RunIdIncrementer())
-				.start(masterStep())
+				.start(userSlaveStep())
 				.build();
 	}
 	
 	@Bean
-	public ItemProcessor<Employee, NewEmployee> employeeProcessor() {
-		return new Processor();
+	public ItemProcessor<User, NewUser> userProcessor() {
+		return new UserProcessor();
 	}
 
 	@Override
@@ -183,83 +164,80 @@ public class JobConfiguration implements ApplicationContextAware{
 		this.applicationContext=applicationContext;
 	}
 
-	
-	@Bean
-	@StepScope
-	public JdbcPagingItemReader<Employee> pagingItemReader2() {
-		JdbcPagingItemReader<Employee> reader = new JdbcPagingItemReader<Employee>();
-		reader.setDataSource(this.dataSource);
-		// this should be equal to chunk size for the performance reasons.
-		reader.setFetchSize(chunkSize);
-		reader.setRowMapper((resultSet, i) -> {
-			return new Employee(resultSet.getLong("id"), 
-					resultSet.getString("firstName"),
-					resultSet.getString("lastName"));
-		});
-
-		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
-		provider.setSelectClause("id, firstName, lastName");
-		provider.setFromClause("from Employee");
-
-		Map<String, Order> sortKeys = new HashMap<>(1);
-		sortKeys.put("id", Order.ASCENDING);
-		provider.setSortKeys(sortKeys);
-
-		reader.setQueryProvider(provider);
-		System.out.println("reader--->"+reader);
-		return reader;
-	}
-	
-	*//** 
+	/** 
 	 * @throws Exception 
 	 * @category JdbcPagingitemReader
 	 * We are using JdbcPagingitemReader for reading data from source database.
 	 * This supports multiple threads can read from the data source at the same
 	 * time. It is also going to track the last key that was read.
-	 *//*
+	 */
 	
 	@Bean
 	@StepScope
-	public JdbcPagingItemReader<Employee> pagingItemReader(
+	public JdbcPagingItemReader<User> userItemReader(
 			@Value("#{stepExecutionContext[fromId]}") final String fromId,
 		      @Value("#{stepExecutionContext[toId]}") final String toId,
 		      @Value("#{stepExecutionContext[name]}") final String name) throws Exception {
-		System.out.println("reading " + fromId + " to " + toId);
-		JdbcPagingItemReader<Employee> reader = new JdbcPagingItemReader<Employee>();
+		JdbcPagingItemReader<User> reader = new JdbcPagingItemReader<User>();
 		reader.setDataSource(this.dataSource);
 		// this should be equal to chunk size for the performance reasons.
 		reader.setFetchSize(chunkSize);
 		reader.setRowMapper((resultSet, i) -> {
-			return new Employee(resultSet.getLong("id"), 
-					resultSet.getString("firstName"),
-					resultSet.getString("lastName"));
+			return new User(resultSet.getInt("id"), 
+					resultSet.getString("username"),
+					resultSet.getString("password"),
+					resultSet.getInt("age"));
 		});
 
 		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
-		provider.setSelectClause("id, firstName, lastName");
-		provider.setFromClause("from Employee");
-		provider.setWhereClause("where id<=" + fromId + " and id > " + toId);
-
+		provider.setSelectClause("id, username, password");
+		provider.setFromClause("from user");
+		provider.setWhereClause("where id>=" + fromId + " and id <= " + toId);
+		
 		Map<String, Order> sortKeys = new HashMap<>(1);
 		sortKeys.put("id", Order.ASCENDING);
 		provider.setSortKeys(sortKeys);
 
 		reader.setQueryProvider(provider);
-		LOGGER.info("reader--->"+reader);
-		System.out.println("reader--->"+reader);
+		reader.afterPropertiesSet();
+		return reader;
+	}
+	
+	@Bean
+	@StepScope
+	public JdbcPagingItemReader<User> userItemReaderWithoutPartition() throws Exception{
+		JdbcPagingItemReader<User> reader = new JdbcPagingItemReader<User>();
+		reader.setDataSource(this.dataSource);
+		// this should be equal to chunk size for the performance reasons.
+		reader.setFetchSize(chunkSize);
+		reader.setRowMapper((resultSet, i) -> {
+			return new User(resultSet.getInt("id"), 
+					resultSet.getString("username"),
+					resultSet.getString("password"),
+					resultSet.getInt("age"));
+		});
+
+		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
+		provider.setSelectClause("id, username, password");
+		provider.setFromClause("from user");
+		
+		Map<String, Order> sortKeys = new HashMap<>(1);
+		sortKeys.put("id", Order.ASCENDING);
+		provider.setSortKeys(sortKeys);
+
+		reader.setQueryProvider(provider);
 		reader.afterPropertiesSet();
 		return reader;
 	}
 	
 	@StepScope
 	@Bean
-	public ItemWriter<NewEmployee> customItemWriter() {
-		JdbcBatchItemWriter<NewEmployee> writer = new JdbcBatchItemWriter<NewEmployee>();
+	public ItemWriter<NewUser> userItemWriter() {
+		JdbcBatchItemWriter<NewUser> writer = new JdbcBatchItemWriter<NewUser>();
 		writer.setDataSource(dataSource);
-		writer.setSql("INSERT INTO NEWEMPLOYEE values (:id, :firstName ,:lastName)");
+		writer.setSql("INSERT INTO NEWUSER values (:id, :username ,:password, :age)");
 		writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
 		writer.afterPropertiesSet();
-		System.out.println("writer---->"+writer);
 		return writer;
 	}
-}*/
+}
