@@ -1,4 +1,4 @@
-package com.qiwkreport.qiwk.etl.configuration;
+/*package com.qiwkreport.qiwk.etl.configuration;
 
 
 import java.util.HashMap;
@@ -216,3 +216,4 @@ public class FRJobConfiguration implements ApplicationContextAware{
 	}
 }
 
+*/

@@ -39,16 +39,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.qiwkreport.qiwk.etl.domain.NewUser;
-import com.qiwkreport.qiwk.etl.domain.User;
+import com.qiwkreport.qiwk.etl.domain.OldUser;
 import com.qiwkreport.qiwk.etl.processor.UserProcessor;
+import com.qiwkreport.qiwk.etl.reader.UserReader;
 import com.qiwkreport.qiwk.etl.util.UserRangePartitioner;
+import com.qiwkreport.qiwk.etl.writer.UserWriter;
 
 /**
  * @author Abhilash
  *
  */
 @Configuration
-@EnableBatchProcessing
 public class UserJobConfiguration implements ApplicationContextAware{
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserJobConfiguration.class);
@@ -78,6 +79,12 @@ public class UserJobConfiguration implements ApplicationContextAware{
 	private JobLauncher jobLauncher;
 
 	private ApplicationContext applicationContext;
+	
+	@Autowired
+	private UserWriter userWriter; 
+	
+	@Autowired
+	private UserReader userReader; 
 	
 	@Value("${data.chunk.size}")
 	private int chunkSize;
@@ -113,7 +120,7 @@ public class UserJobConfiguration implements ApplicationContextAware{
 		UserRangePartitioner partitioner = new UserRangePartitioner();
 		partitioner.setColumn("id");
 		partitioner.setDataSource(this.dataSource);
-		partitioner.setTable("User");
+		partitioner.setTable("OldUser");
 		return partitioner;
 	}
 
@@ -139,25 +146,36 @@ public class UserJobConfiguration implements ApplicationContextAware{
 	@Bean
 	public Step userSlaveStep() throws Exception {
 		return stepBuilderFactory.get("userSlaveStep")
-				.<User, NewUser>chunk(chunkSize)
-				.reader(userItemReaderWithoutPartition())
+				.<OldUser, NewUser>chunk(chunkSize)
+				.reader(userReader.userItemReader(null, null, null))
 			    .processor(userProcessor())
-				.writer(userItemWriter())
+				.writer(userWriter.userItemWriter())
 				.build();
 	}
 
 	@Bean
-	public Job job() throws Exception {
+	public Job userJob() throws Exception {
 		return jobBuilderFactory.get("UserJob")
 				.incrementer(new RunIdIncrementer())
-				.start(userSlaveStep())
+				.start(userMasterStep())
 				.build();
 	}
 	
+	
 	@Bean
-	public ItemProcessor<User, NewUser> userProcessor() {
+	public ItemProcessor<OldUser, NewUser> userProcessor() {
 		return new UserProcessor();
 	}
+	/*
+	@Bean
+	public void oldUserReader() throws Exception {
+		return new UserReader().userItemReader(null, null, null);
+	}
+	
+	@Bean
+	public ItemWriter<NewUser> oldUserWriter() {
+		return new UserWriter().userItemWriter();
+	}*/
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -172,26 +190,26 @@ public class UserJobConfiguration implements ApplicationContextAware{
 	 * time. It is also going to track the last key that was read.
 	 */
 	
-	@Bean
+/*	@Bean
 	@StepScope
-	public JdbcPagingItemReader<User> userItemReader(
+	public JdbcPagingItemReader<OldUser> userItemReader(
 			@Value("#{stepExecutionContext[fromId]}") final String fromId,
 		      @Value("#{stepExecutionContext[toId]}") final String toId,
 		      @Value("#{stepExecutionContext[name]}") final String name) throws Exception {
-		JdbcPagingItemReader<User> reader = new JdbcPagingItemReader<User>();
+		JdbcPagingItemReader<OldUser> reader = new JdbcPagingItemReader<OldUser>();
 		reader.setDataSource(this.dataSource);
 		// this should be equal to chunk size for the performance reasons.
 		reader.setFetchSize(chunkSize);
 		reader.setRowMapper((resultSet, i) -> {
-			return new User(resultSet.getInt("id"), 
+			return new OldUser(resultSet.getInt("id"), 
 					resultSet.getString("username"),
 					resultSet.getString("password"),
 					resultSet.getInt("age"));
 		});
 
 		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
-		provider.setSelectClause("id, username, password");
-		provider.setFromClause("from user");
+		provider.setSelectClause("id, username, password,age");
+		provider.setFromClause("from OLDUSER");
 		provider.setWhereClause("where id>=" + fromId + " and id <= " + toId);
 		
 		Map<String, Order> sortKeys = new HashMap<>(1);
@@ -205,21 +223,21 @@ public class UserJobConfiguration implements ApplicationContextAware{
 	
 	@Bean
 	@StepScope
-	public JdbcPagingItemReader<User> userItemReaderWithoutPartition() throws Exception{
-		JdbcPagingItemReader<User> reader = new JdbcPagingItemReader<User>();
+	public JdbcPagingItemReader<OldUser> userItemReaderWithoutPartition() throws Exception{
+		JdbcPagingItemReader<OldUser> reader = new JdbcPagingItemReader<OldUser>();
 		reader.setDataSource(this.dataSource);
 		// this should be equal to chunk size for the performance reasons.
 		reader.setFetchSize(chunkSize);
 		reader.setRowMapper((resultSet, i) -> {
-			return new User(resultSet.getInt("id"), 
+			return new OldUser(resultSet.getInt("id"), 
 					resultSet.getString("username"),
 					resultSet.getString("password"),
 					resultSet.getInt("age"));
 		});
 
 		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
-		provider.setSelectClause("id, username, password");
-		provider.setFromClause("from user");
+		provider.setSelectClause("id, username, password, age");
+		provider.setFromClause("from OLDUSER");
 		
 		Map<String, Order> sortKeys = new HashMap<>(1);
 		sortKeys.put("id", Order.ASCENDING);
@@ -239,5 +257,5 @@ public class UserJobConfiguration implements ApplicationContextAware{
 		writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
 		writer.afterPropertiesSet();
 		return writer;
-	}
+	}*/
 }
