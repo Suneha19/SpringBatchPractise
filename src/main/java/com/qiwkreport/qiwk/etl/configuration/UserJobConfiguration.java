@@ -1,18 +1,13 @@
 package com.qiwkreport.qiwk.etl.configuration;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.JobRegistry;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
 import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.batch.core.explore.JobExplorer;
@@ -24,12 +19,6 @@ import org.springframework.batch.core.partition.PartitionHandler;
 import org.springframework.batch.core.partition.support.TaskExecutorPartitionHandler;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
-import org.springframework.batch.item.database.JdbcBatchItemWriter;
-import org.springframework.batch.item.database.JdbcPagingItemReader;
-import org.springframework.batch.item.database.Order;
-import org.springframework.batch.item.database.support.OraclePagingQueryProvider;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,9 +30,9 @@ import org.springframework.context.annotation.Configuration;
 import com.qiwkreport.qiwk.etl.domain.NewUser;
 import com.qiwkreport.qiwk.etl.domain.OldUser;
 import com.qiwkreport.qiwk.etl.processor.UserProcessor;
-import com.qiwkreport.qiwk.etl.reader.UserReader;
+import com.qiwkreport.qiwk.etl.reader.Reader;
 import com.qiwkreport.qiwk.etl.util.UserRangePartitioner;
-import com.qiwkreport.qiwk.etl.writer.UserWriter;
+import com.qiwkreport.qiwk.etl.writer.Writer;
 
 /**
  * @author Abhilash
@@ -81,10 +70,10 @@ public class UserJobConfiguration implements ApplicationContextAware{
 	private ApplicationContext applicationContext;
 	
 	@Autowired
-	private UserWriter userWriter; 
+	private Writer userWriter; 
 	
 	@Autowired
-	private UserReader userReader; 
+	private Reader userReader; 
 	
 	@Value("${data.chunk.size}")
 	private int chunkSize;

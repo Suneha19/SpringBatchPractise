@@ -123,9 +123,9 @@ public class FRJobConfiguration implements ApplicationContextAware{
 	public Step slaveStep() throws Exception {
 		return stepBuilderFactory.get("slaveStep")
 				.<Employee, NewEmployee>chunk(chunkSize)
-				.reader(slaveReader2(null, null))
+				.reader((null, null))
 				.processor(slaveProcessor())
-				.writer(slaveWriter())
+				.writer(())
 				.build();
 	}
 	
@@ -165,54 +165,6 @@ public class FRJobConfiguration implements ApplicationContextAware{
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
-	}
-	
-	@Bean
-	@StepScope
-	public JdbcPagingItemReader<Employee> slaveReader2(
-			@Value("#{stepExecutionContext[fromId]}") final String fromId,
-			@Value("#{stepExecutionContext[toId]}") final String toId) throws Exception {
-
-		JdbcPagingItemReader<Employee> reader = new JdbcPagingItemReader<Employee>();
-		reader.setDataSource(this.dataSource);
-		// the fetch size equal to chunk size for the performance reasons. 
-		reader.setFetchSize(chunkSize);
-		reader.setRowMapper((resultSet, i) -> {
-			return new Employee(resultSet.getLong("id"), 
-					resultSet.getString("firstName"),
-					resultSet.getString("lastName"),
-					resultSet.getString("village"),
-					resultSet.getString("street"),
-					resultSet.getString("city"),
-					resultSet.getString("district"),
-					resultSet.getString("state"),
-					resultSet.getString("pincode"),
-					resultSet.getString("managerid"),
-					resultSet.getString("managerName"));
-		});
-		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
-		provider.setSelectClause("id, firstName ,lastName, village, street , city, district, state, pincode, managerid, managerName");
-		provider.setFromClause("from Employee");
-		provider.setWhereClause("where id>=" + fromId + " and id <= " + toId);
-		
-		Map<String, Order> sortKeys = new HashMap<>(1);
-		sortKeys.put("id", Order.ASCENDING);
-		provider.setSortKeys(sortKeys);
-		reader.setQueryProvider(provider);
-		reader.afterPropertiesSet();
-		return reader;
-	}
-	
-	@StepScope
-	@Bean
-	public ItemWriter<NewEmployee> slaveWriter() {
-		JdbcBatchItemWriter<NewEmployee> writer = new JdbcBatchItemWriter<NewEmployee>();
-		writer.setDataSource(dataSource);
-		writer.setSql(
-				"INSERT INTO NEWEMPLOYEE values (:id, :firstName ,:lastName, :village, :street , :city, :district, :state, :pincode, :managerid, :managerName)");
-		writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
-		writer.afterPropertiesSet();
-		return writer;
 	}
 }
 
