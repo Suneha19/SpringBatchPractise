@@ -23,6 +23,7 @@ import com.qiwkreport.qiwk.etl.processor.UserProcessor;
 import com.qiwkreport.qiwk.etl.reader.Reader;
 import com.qiwkreport.qiwk.etl.util.UserRangePartitioner;
 import com.qiwkreport.qiwk.etl.writer.HibernateUserItemWriter;
+import com.qiwkreport.qiwk.etl.writer.JpaUserItemWriter;
 
 /**
  * @author Abhilash
@@ -96,14 +97,20 @@ public class UserJobConfiguration {
 				.<Olduser, NewUser>chunk(chunkSize)
 				.reader(reader.jpaUserItemReader(null, null, null))
 			    .processor(userProcessor())
-				.writer(userItemWriter())
+				.writer(jpaUserItemWriter())
 				.build();
 	}
 
 	@Bean
-	public ItemWriter<NewUser> userItemWriter() {
+	public ItemWriter<NewUser> hibenateUserItemWriter() {
 		return new HibernateUserItemWriter();
 	}
+	
+	@Bean
+	public ItemWriter<NewUser> jpaUserItemWriter() {
+		return new JpaUserItemWriter();
+	}
+
 
 	
 	@Bean

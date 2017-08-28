@@ -123,20 +123,12 @@ public class Reader{
 			@Value("#{stepExecutionContext[fromId]}") final String fromId,
 			@Value("#{stepExecutionContext[toId]}") final String toId,
 			@Value("#{stepExecutionContext[name]}") final String name) throws Exception {
-		
-/*		LocalSessionFactoryBean factoryBean = new LocalSessionFactoryBean();
-	    factoryBean.setDataSource(this.dataSource);
-	    factoryBean.setAnnotatedPackages("com.qiwkreport.qiwk.etl.domain");
-	    //factoryBean.setAnnotatedClasses(Olduser.class);
-	    SessionFactory sessionFactory = factoryBean.getObject();
-	    factoryBean.afterPropertiesSet();*/
 	    
 		HibernatePagingItemReader<Olduser> hibernateReader=new HibernatePagingItemReader<>();
 		hibernateReader.setFetchSize(chunkSize);
 		hibernateReader.setQueryString("FROM Olduser o where o.id>=" + fromId + " and o.id <= " + toId +" order by o.id ASC");
 		hibernateReader.setSessionFactory(sessionFactory().getObject());
-	   // hibernateReader.setUseStatelessSession(false);
-		//hibernateReader.setSaveState(false);
+		hibernateReader.setSaveState(false);
 		hibernateReader.afterPropertiesSet();
 		return hibernateReader;
 	}
@@ -145,8 +137,7 @@ public class Reader{
 	public LocalSessionFactoryBean sessionFactory() throws IOException{
 		LocalSessionFactoryBean factoryBean = new LocalSessionFactoryBean();
 	    factoryBean.setDataSource(this.dataSource);
-	   // factoryBean.setAnnotatedPackages("com.qiwkreport.qiwk.etl.domain");
-	    //factoryBean.setAnnotatedClasses(Olduser.class);
+	    factoryBean.setAnnotatedPackages("com.qiwkreport.qiwk.etl.domain");
 	    factoryBean.afterPropertiesSet();
 		return factoryBean;
 	}

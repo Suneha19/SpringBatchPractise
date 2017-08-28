@@ -14,16 +14,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.qiwkreport.qiwk.etl.repository.OlduserRepository;
-
 @RestController
 public class JobLaunchingController {
 
 	@Autowired
 	private JobOperator jobOperator;
-
-	@Autowired
-	private OlduserRepository repository;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JobLaunchingController.class);
 
@@ -32,7 +27,6 @@ public class JobLaunchingController {
 	public String launch(@PathVariable String batchJobType)
 			throws NoSuchJobException, JobInstanceAlreadyExistsException, JobParametersInvalidException {
 		LOGGER.info("FR Job Started" + System.currentTimeMillis());
-		LOGGER.info("Respository data--count---" + repository.count());
 		jobOperator.start(batchJobType, null);
 		LOGGER.info("FR Job Finished" + System.currentTimeMillis());
 		return "FR Job Completed Sucessfully !";
