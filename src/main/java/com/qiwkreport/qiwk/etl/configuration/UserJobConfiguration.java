@@ -94,7 +94,7 @@ public class UserJobConfiguration {
 	public Step userSlaveStep() throws Exception {
 		return stepBuilderFactory.get("userSlaveStep")
 				.<Olduser, NewUser>chunk(chunkSize)
-				.reader(reader.hibernateUserItemReader(null, null, null))
+				.reader(reader.jpaUserItemReader(null, null, null))
 			    .processor(userProcessor())
 				.writer(userItemWriter())
 				.build();

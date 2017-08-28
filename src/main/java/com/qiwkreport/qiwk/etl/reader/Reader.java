@@ -1,7 +1,12 @@
 package com.qiwkreport.qiwk.etl.reader;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.hibernate.Query;
@@ -19,7 +24,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 
 import com.qiwkreport.qiwk.etl.domain.Employee;
 import com.qiwkreport.qiwk.etl.domain.Olduser;
@@ -29,9 +37,13 @@ public class Reader{
 	
 	@Autowired
 	public DataSource dataSource;
+	
+	@PersistenceContext
+    private EntityManager em;
 
 	@Value("${data.chunk.size}")
 	private int chunkSize;
+	
 	
 	/**
 	 * {@code} The @StepScope annotation is very imp, as this instantiate this
@@ -80,14 +92,29 @@ public class Reader{
 	
 	@Bean
 	@StepScope
-	public HibernatePagingItemReader<Olduser> jpaUserItemReader(
+	public JpaPagingItemReader<Olduser> jpaUserItemReader(
 			@Value("#{stepExecutionContext[fromId]}") final String fromId,
 			@Value("#{stepExecutionContext[toId]}") final String toId,
 			@Value("#{stepExecutionContext[name]}") final String name) throws Exception {
 		
-		JpaPagingItemReader<Olduser> jpaPagingItemReader=new JpaPagingItemReader<>();
-		//jpaPagingItemReader.
-		return null;
+/*		LocalSessionFactoryBean factoryBean = new LocalSessionFactoryBean();
+	    factoryBean.setDataSource(this.dataSource);
+	    factoryBean.setAnnotatedPackages("com.qiwkreport.qiwk.etl.domain");
+	    //factoryBean.setAnnotatedClasses(Olduser.class);
+	    SessionFactory sessionFactory = factoryBean.getObject();
+	    factoryBean.afterPropertiesSet();*/
+	    
+		JpaPagingItemReader<Olduser> jpaReader=new JpaPagingItemReader<>();
+		jpaReader.setPageSize(chunkSize);
+		jpaReader.setEntityManagerFactory(em.getEntityManagerFactory());
+		jpaReader.setQueryString("FROM Olduser o where o.id>=" + fromId + " and o.id <= " + toId +" order by o.id ASC");
+		//setSaveState to false,because it is required to save the stream and to be used in concurrent environment
+		jpaReader.setSaveState(false);
+//		jpaReader.setSessionFactory(sessionFactory().getObject());
+	   // hibernateReader.setUseStatelessSession(false);
+		//hibernateReader.setSaveState(false);
+		jpaReader.afterPropertiesSet();
+		return jpaReader;
 	}
 	
 	@Bean
@@ -97,53 +124,39 @@ public class Reader{
 			@Value("#{stepExecutionContext[toId]}") final String toId,
 			@Value("#{stepExecutionContext[name]}") final String name) throws Exception {
 		
-		//JdbcPagingItemReader<OldUser> reader = new JdbcPagingItemReader<OldUser>();
-		LocalSessionFactoryBean factoryBean = new LocalSessionFactoryBean();
+/*		LocalSessionFactoryBean factoryBean = new LocalSessionFactoryBean();
 	    factoryBean.setDataSource(this.dataSource);
-	    factoryBean.afterPropertiesSet();
+	    factoryBean.setAnnotatedPackages("com.qiwkreport.qiwk.etl.domain");
+	    //factoryBean.setAnnotatedClasses(Olduser.class);
 	    SessionFactory sessionFactory = factoryBean.getObject();
+	    factoryBean.afterPropertiesSet();*/
 	    
 		HibernatePagingItemReader<Olduser> hibernateReader=new HibernatePagingItemReader<>();
-		//HibernateQueryProvider hibernateQueryProvider=new Hiber
-	
-		
-	    //hibernateReader.setDataSource(this.dataSource);
-		// this should be equal to chunk size for the performance reasons.
 		hibernateReader.setFetchSize(chunkSize);
-	/*	hibernateReader.setRowMapper((resultSet, i) -> {
-			return new OldUser(
-					resultSet.getInt("id"), 
-					resultSet.getString("username"), 
-					resultSet.getString("password"),
-					resultSet.getInt("age"));
-		});
-*/
-		//userRepository.findbyIdBetweenOrderByIdAsc(Integer.parseInt(fromId),Integer.parseInt(toId));	
-		
-		//Session session = sessionFactory.getCurrentSession();
-	    //session.beginTransaction();
-	   // String createQuery = session.createQuery("from OLDUSER where id>=" + fromId + " and id <= " + toId +" order by id ASC").getQueryString();
 		hibernateReader.setQueryString("FROM Olduser o where o.id>=" + fromId + " and o.id <= " + toId +" order by o.id ASC");
-		hibernateReader.setSessionFactory(sessionFactory);
-	    hibernateReader.setUseStatelessSession(false);
-		hibernateReader.setSaveState(false);
-		//hibernateReader.set
-	/*	provider.setSelectClause("id, username, password,age"); 
-		provider.setFromClause("from OLDUSER");
-		provider.setWhereClause("where id>=" + fromId + " and id <= " + toId);
-		hibernateReader.setQueryProvider();*/
-		
-	/*	Map<String, Order> sortKeys = new HashMap<>(1);
-		sortKeys.put("id", Order.ASCENDING);
-		hibernateReader.setQueryString(queryString);
-
-		reader.setQueryProvider(provider);*/
+		hibernateReader.setSessionFactory(sessionFactory().getObject());
+	   // hibernateReader.setUseStatelessSession(false);
+		//hibernateReader.setSaveState(false);
 		hibernateReader.afterPropertiesSet();
-		//session.getTransaction().commit();
 		return hibernateReader;
 	}
 	
-
+	@Bean
+	public LocalSessionFactoryBean sessionFactory() throws IOException{
+		LocalSessionFactoryBean factoryBean = new LocalSessionFactoryBean();
+	    factoryBean.setDataSource(this.dataSource);
+	   // factoryBean.setAnnotatedPackages("com.qiwkreport.qiwk.etl.domain");
+	    //factoryBean.setAnnotatedClasses(Olduser.class);
+	    factoryBean.afterPropertiesSet();
+		return factoryBean;
+	}
+	
+	
+	@Bean
+	public JpaTransactionManager transactionManager() {
+	    return new JpaTransactionManager();
+	}
+	
 	/**
 	 * {@code} The @StepScope annotation is very imp, as this instantiate this
 	 * bean in spring context only when this is loaded
