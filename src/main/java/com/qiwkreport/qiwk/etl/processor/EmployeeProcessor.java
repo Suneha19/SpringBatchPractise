@@ -5,7 +5,7 @@ import org.springframework.batch.item.ItemProcessor;
 import com.qiwkreport.qiwk.etl.domain.Employee;
 import com.qiwkreport.qiwk.etl.domain.NewEmployee;
 
-public class Processor implements ItemProcessor<Employee, NewEmployee> {
+public class EmployeeProcessor implements ItemProcessor<Employee, NewEmployee> {
 
 	@Override
 	public NewEmployee process(Employee employee) throws Exception {

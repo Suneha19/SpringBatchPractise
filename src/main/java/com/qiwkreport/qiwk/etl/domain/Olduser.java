@@ -1,13 +1,28 @@
 package com.qiwkreport.qiwk.etl.domain;
 
-public class OldUser {
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
+@Entity(name="OLDUSER")
+@Table(name="OLDUSER")
+public class Olduser {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	@Column(name="ID")
 	int id;
+	@Column(name="USERNAME")
 	String username;
+	@Column(name="PASSWORD")
 	String password;
+	@Column(name="AGE")
 	int age;
 
-	public OldUser(int id, String username, String password, int age) {
+	public Olduser(int id, String username, String password, int age) {
 		super();
 		this.id = id;
 		this.username = username;
@@ -16,7 +31,7 @@ public class OldUser {
 	}
 
 	
-	public OldUser() {
+	public Olduser() {
 		super();
 	}
 

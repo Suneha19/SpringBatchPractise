@@ -4,6 +4,8 @@ import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
+import org.springframework.batch.item.database.HibernateItemWriter;
+import org.springframework.batch.item.database.HibernatePagingItemReader;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -40,4 +42,6 @@ public class Writer {
 		writer.afterPropertiesSet();
 		return writer;
 	}
+	
+	
 }
