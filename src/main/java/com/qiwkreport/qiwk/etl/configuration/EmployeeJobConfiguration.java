@@ -1,16 +1,15 @@
 package com.qiwkreport.qiwk.etl.configuration;
 
 
-import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.partition.PartitionHandler;
 import org.springframework.batch.core.partition.support.TaskExecutorPartitionHandler;
+import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -21,42 +20,29 @@ import org.springframework.core.task.TaskExecutor;
 import com.qiwkreport.qiwk.etl.domain.Employee;
 import com.qiwkreport.qiwk.etl.domain.NewEmployee;
 import com.qiwkreport.qiwk.etl.processor.EmployeeProcessor;
-import com.qiwkreport.qiwk.etl.reader.Reader;
 import com.qiwkreport.qiwk.etl.util.ColumnRangePartitioner;
-import com.qiwkreport.qiwk.etl.writer.Writer;
+import com.qiwkreport.qiwk.etl.writer.JpaEmployeeItemWriter;
+
+/**
+ * This is configurations class for EmployeeJoB, this class is responsible for moving records from
+ * Employee table to NewEmployee table
+ * 
+ * @author Abhilash
+ *
+ */
 
 @Configuration
 @EnableBatchProcessing
 @Import(BatchJobConfiguration.class)
 public class EmployeeJobConfiguration{
-
-	@Autowired
-	private JobBuilderFactory jobBuilderFactory;
-
-	@Autowired
-	private StepBuilderFactory stepBuilderFactory;
-
-	@Autowired
-	private DataSource dataSource;
-
-	@Autowired
-	private TaskExecutorConfiguration taskExecutorConfiguration;
-
-	@Autowired
-	private Reader reader;
 	
 	@Autowired
-	private Writer writer;
-	
-	@Value("${data.chunk.size}")
-	private int chunkSize;
-	
-	@Value("${partition.grid.size}")
-	private int gridSize;
-	
+	private QiwkJobsConfiguration configuration;
+
 	@Bean
 	public Job employeeJob() throws Exception {
-		return jobBuilderFactory.get("EmployeeJob")
+		return configuration.getJobBuilderFactory()
+				.get("EmployeeJob")
 				.incrementer(new RunIdIncrementer())
 				.start(employeeMasterStep())
 				.build();
@@ -64,7 +50,8 @@ public class EmployeeJobConfiguration{
 
 	@Bean
 	public Step employeeMasterStep() throws Exception {
-		return stepBuilderFactory.get("employeeMasterStep")
+		return configuration.getStepBuilderFactory()
+				.get("employeeMasterStep")
 				.partitioner(employeeSlaveStep().getName(), columnRangePartitioner())
 				.partitionHandler(employeeMasterSlaveHandler())
 				.build();
@@ -72,18 +59,19 @@ public class EmployeeJobConfiguration{
 	
 	@Bean
 	public Step employeeSlaveStep() throws Exception {
-		return stepBuilderFactory.get("employeeSlaveStep")
-				.<Employee, NewEmployee>chunk(chunkSize)
-				.reader(reader.employeeReader(null, null, null))
+		return configuration.getStepBuilderFactory()
+				.get("employeeSlaveStep")
+				.<Employee, NewEmployee>chunk(configuration.getChunkSize())
+				.reader(jpaEmployeeReader(null, null, null))
 				.processor(employeeProcessor())
-				.writer(writer.employeeWriter())
+				.writer(jpaEmployeeItemWriter())
 				.build();
 	}
 	
 	@Bean
 	public PartitionHandler employeeMasterSlaveHandler() throws Exception {
 		TaskExecutorPartitionHandler handler = new TaskExecutorPartitionHandler();
-		handler.setGridSize(gridSize);
+		handler.setGridSize(configuration.getGridSize());
 		handler.setTaskExecutor(taskExecutor());
 		handler.setStep(employeeSlaveStep());
 		handler.afterPropertiesSet();
@@ -95,20 +83,45 @@ public class EmployeeJobConfiguration{
 	public ColumnRangePartitioner columnRangePartitioner() {
 		ColumnRangePartitioner partitioner = new ColumnRangePartitioner();
 		partitioner.setColumn("id");
-		partitioner.setDataSource(dataSource);
+		partitioner.setDataSource(configuration.getDataSource());
 		partitioner.setTable("EMPLOYEE");
 		return partitioner;
 	}
 
 	@Bean
 	public TaskExecutor taskExecutor() {
-		return taskExecutorConfiguration.taskExecutor();
+		return configuration.getTaskExecutorConfiguration()
+				.taskExecutor();
 	}
 
 	@Bean
-	@StepScope
 	public EmployeeProcessor employeeProcessor() {
 		return new EmployeeProcessor();
+	}
+	
+	/**
+	 * {@code} The @StepScope annotation is very imp, as this instantiate this
+	 * bean in spring context only when this is loaded
+	 */
+	@Bean
+	@StepScope
+	public JpaPagingItemReader<Employee> jpaEmployeeReader(
+			@Value("#{stepExecutionContext[fromId]}") final String fromId,
+			@Value("#{stepExecutionContext[toId]}") final String toId,
+			@Value("#{stepExecutionContext[name]}") final String name) throws Exception {
+
+		JpaPagingItemReader<Employee> reader = new JpaPagingItemReader<Employee>();
+		reader.setPageSize(configuration.getChunkSize());
+		reader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
+		reader.setQueryString("FROM Employee o where o.id>=" + fromId + " and o.id <= " + toId +" order by o.id ASC");
+		reader.setSaveState(false);
+		reader.afterPropertiesSet();
+		return reader;
+	}
+	
+	@Bean
+	public ItemWriter<NewEmployee> jpaEmployeeItemWriter() {
+		return new JpaEmployeeItemWriter();
 	}
 
 }

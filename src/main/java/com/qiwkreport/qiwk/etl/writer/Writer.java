@@ -8,7 +8,6 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
-import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,14 +46,5 @@ public class Writer {
 		writer.afterPropertiesSet();
 		return writer;
 	}
-
-/*	@StepScope
-	@Bean
-	public ItemWriter<NewUser> jpaUserItemWriter() throws Exception {
-
-		JpaItemWriter<NewUser> writer = new JpaItemWriter<NewUser>();
-		writer.setEntityManagerFactory(entityManagerFactory.getEntityManagerFactory());
-		return writer;
-	}*/
 
 }

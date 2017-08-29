@@ -20,10 +20,12 @@ import com.qiwkreport.qiwk.etl.domain.NewUser;
 import com.qiwkreport.qiwk.etl.domain.Olduser;
 import com.qiwkreport.qiwk.etl.processor.UserProcessor;
 import com.qiwkreport.qiwk.etl.util.UserRangePartitioner;
-import com.qiwkreport.qiwk.etl.writer.HibernateUserItemWriter;
 import com.qiwkreport.qiwk.etl.writer.JpaUserItemWriter;
 
 /**
+ * This is configurations class for UserJob, this class is responsible for moving records from
+ * OldUser table to NewUser table
+ * 
  * @author Abhilash
  *
  */
@@ -45,21 +47,31 @@ public class UserJobConfiguration {
 	}
 	
 	@Bean
-	public UserRangePartitioner userPartitioner() {
-		UserRangePartitioner partitioner = new UserRangePartitioner();
-		partitioner.setColumn("id");
-		partitioner.setDataSource(configuration.getDataSource());
-		partitioner.setTable("OLDUSER");
-		return partitioner;
-	}
-
-	@Bean
 	public Step userMasterStep() throws Exception {
 		return   configuration.getStepBuilderFactory()
 				.get("userMasterStep")
 				.partitioner(userSlaveStep().getName(), userPartitioner())
 				.partitionHandler(userMasterSlaveHandler())
 	            .build();
+	}
+	
+	@Bean
+	public Step userSlaveStep() throws Exception {
+		return configuration.getStepBuilderFactory().get("userSlaveStep")
+				.<Olduser, NewUser>chunk(configuration.getChunkSize())
+				.reader(jpaUserItemReader(null, null, null))
+			    .processor(userProcessor())
+				.writer(jpaUserItemWriter())
+				.build();
+	}
+	
+	@Bean
+	public UserRangePartitioner userPartitioner() {
+		UserRangePartitioner partitioner = new UserRangePartitioner();
+		partitioner.setColumn("id");
+		partitioner.setDataSource(configuration.getDataSource());
+		partitioner.setTable("OLDUSER");
+		return partitioner;
 	}
 
 	@Bean
@@ -72,31 +84,12 @@ public class UserJobConfiguration {
 		return handler;
 	}
 
-	@Bean
-	public Step userSlaveStep() throws Exception {
-		return configuration.getStepBuilderFactory().get("userSlaveStep")
-				.<Olduser, NewUser>chunk(configuration.getChunkSize())
-				.reader(jpaUserItemReader(null, null, null))
-			    .processor(userProcessor())
-				.writer(jpaUserItemWriter())
-				.build();
-	}
 
-	@Bean
-	public ItemWriter<NewUser> hibenateUserItemWriter() {
-		return new HibernateUserItemWriter();
-	}
+	/**
+	 * {@code} The @StepScope annotation is very imp, as this instantiate this
+	 * bean in spring context only when this is loaded
+	 */
 	
-	@Bean
-	public ItemWriter<NewUser> jpaUserItemWriter() {
-		return new JpaUserItemWriter();
-	}
-
-	@Bean
-	public ItemProcessor<Olduser, NewUser> userProcessor() {
-		return new UserProcessor();
-	}
-
 	@Bean
 	@StepScope
 	public JpaPagingItemReader<Olduser> jpaUserItemReader(
@@ -113,8 +106,18 @@ public class UserJobConfiguration {
 		return jpaReader;
 	}
 	
+	@Bean
+	public ItemWriter<NewUser> jpaUserItemWriter() {
+		return new JpaUserItemWriter();
+	}
+
+	@Bean
+	public ItemProcessor<Olduser, NewUser> userProcessor() {
+		return new UserProcessor();
+	}
 	
 	/**
+	 *  @Warning
 	 *  DONOT Use the below implementation of JpaItemWriter code as
 	 *  some of records are getting missed . Investigation is pending.
 	 */

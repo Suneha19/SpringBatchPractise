@@ -11,7 +11,6 @@ import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.database.HibernatePagingItemReader;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
-import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.Order;
 import org.springframework.batch.item.database.PagingQueryProvider;
 import org.springframework.batch.item.database.support.OraclePagingQueryProvider;
@@ -77,39 +76,6 @@ public class Reader{
 		return reader;
 	}
 
-	
-	/**
-	 * {@code} The @StepScope annotation is very imp, as this instantiate this
-	 * bean in spring context only when this is loaded
-	 */
-	
-/*	@Bean
-	@StepScope
-	public JpaPagingItemReader<Olduser> jpaUserItemReader(
-			@Value("#{stepExecutionContext[fromId]}") final String fromId,
-			@Value("#{stepExecutionContext[toId]}") final String toId,
-			@Value("#{stepExecutionContext[name]}") final String name) throws Exception {
-		
-		LocalSessionFactoryBean factoryBean = new LocalSessionFactoryBean();
-	    factoryBean.setDataSource(this.dataSource);
-	    factoryBean.setAnnotatedPackages("com.qiwkreport.qiwk.etl.domain");
-	    //factoryBean.setAnnotatedClasses(Olduser.class);
-	    SessionFactory sessionFactory = factoryBean.getObject();
-	    factoryBean.afterPropertiesSet();
-	    
-		JpaPagingItemReader<Olduser> jpaReader=new JpaPagingItemReader<>();
-		jpaReader.setPageSize(chunkSize);
-		jpaReader.setEntityManagerFactory(em.getEntityManagerFactory());
-		jpaReader.setQueryString("FROM Olduser o where o.id>=" + fromId + " and o.id <= " + toId +" order by o.id ASC");
-		//setSaveState to false,because it is required to save the stream and to be used in concurrent environment
-		jpaReader.setSaveState(false);
-//		jpaReader.setSessionFactory(sessionFactory().getObject());
-	   // hibernateReader.setUseStatelessSession(false);
-		//hibernateReader.setSaveState(false);
-		jpaReader.afterPropertiesSet();
-		return jpaReader;
-	}*/
-	
 	@Bean
 	@StepScope
 	public HibernatePagingItemReader<Olduser> hibernateUserItemReader(
