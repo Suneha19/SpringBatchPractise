@@ -8,18 +8,18 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name="OLDUSER")
+@Table(name = "OLDUSER")
 public class Olduser {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name="ID")
+	@Column(name = "ID")
 	int id;
-	@Column(name="USERNAME")
+	@Column(name = "USERNAME")
 	String username;
-	@Column(name="PASSWORD")
+	@Column(name = "PASSWORD")
 	String password;
-	@Column(name="AGE")
+	@Column(name = "AGE")
 	int age;
 
 	public Olduser(int id, String username, String password, int age) {
@@ -30,7 +30,6 @@ public class Olduser {
 		this.age = age;
 	}
 
-	
 	public Olduser() {
 		super();
 	}
@@ -72,5 +71,4 @@ public class Olduser {
 		return "User [id=" + id + ", username=" + username + ", password=" + password + ", age=" + age + "]";
 	}
 
-	
 }
