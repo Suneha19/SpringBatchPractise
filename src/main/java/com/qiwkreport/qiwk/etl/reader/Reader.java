@@ -83,19 +83,19 @@ public class Reader{
 	 * bean in spring context only when this is loaded
 	 */
 	
-	@Bean
+/*	@Bean
 	@StepScope
 	public JpaPagingItemReader<Olduser> jpaUserItemReader(
 			@Value("#{stepExecutionContext[fromId]}") final String fromId,
 			@Value("#{stepExecutionContext[toId]}") final String toId,
 			@Value("#{stepExecutionContext[name]}") final String name) throws Exception {
 		
-/*		LocalSessionFactoryBean factoryBean = new LocalSessionFactoryBean();
+		LocalSessionFactoryBean factoryBean = new LocalSessionFactoryBean();
 	    factoryBean.setDataSource(this.dataSource);
 	    factoryBean.setAnnotatedPackages("com.qiwkreport.qiwk.etl.domain");
 	    //factoryBean.setAnnotatedClasses(Olduser.class);
 	    SessionFactory sessionFactory = factoryBean.getObject();
-	    factoryBean.afterPropertiesSet();*/
+	    factoryBean.afterPropertiesSet();
 	    
 		JpaPagingItemReader<Olduser> jpaReader=new JpaPagingItemReader<>();
 		jpaReader.setPageSize(chunkSize);
@@ -108,7 +108,7 @@ public class Reader{
 		//hibernateReader.setSaveState(false);
 		jpaReader.afterPropertiesSet();
 		return jpaReader;
-	}
+	}*/
 	
 	@Bean
 	@StepScope

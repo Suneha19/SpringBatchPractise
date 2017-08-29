@@ -27,7 +27,7 @@ import com.qiwkreport.qiwk.etl.writer.Writer;
 
 @Configuration
 @EnableBatchProcessing
-@Import(BatchConfiguration.class)
+@Import(BatchJobConfiguration.class)
 public class EmployeeJobConfiguration{
 
 	@Autowired

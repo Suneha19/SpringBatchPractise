@@ -15,8 +15,16 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * This class contains configurations related to Job launching and Job registry 
+ * related to application
+ * 
+ * @author Abhilash
+ *
+ */
+
 @Configuration
-public class BatchConfiguration implements ApplicationContextAware{
+public class BatchJobConfiguration implements ApplicationContextAware{
 
 	@Autowired
 	private JobExplorer jobExplorer;

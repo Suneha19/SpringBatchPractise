@@ -1,12 +1,14 @@
 package com.qiwkreport.qiwk.etl.writer;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
-import org.springframework.batch.item.database.HibernateItemWriter;
-import org.springframework.batch.item.database.HibernatePagingItemReader;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
+import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +22,9 @@ public class Writer {
 	@Autowired
 	public DataSource dataSource;
 
+	@PersistenceContext
+	private EntityManager entityManagerFactory;
+
 	@StepScope
 	@Bean
 	public ItemWriter<NewEmployee> employeeWriter() {
@@ -31,7 +36,7 @@ public class Writer {
 		writer.afterPropertiesSet();
 		return writer;
 	}
-	
+
 	@StepScope
 	@Bean
 	public ItemWriter<NewUser> userItemWriter() {
@@ -42,6 +47,14 @@ public class Writer {
 		writer.afterPropertiesSet();
 		return writer;
 	}
-	
-	
+
+/*	@StepScope
+	@Bean
+	public ItemWriter<NewUser> jpaUserItemWriter() throws Exception {
+
+		JpaItemWriter<NewUser> writer = new JpaItemWriter<NewUser>();
+		writer.setEntityManagerFactory(entityManagerFactory.getEntityManagerFactory());
+		return writer;
+	}*/
+
 }
