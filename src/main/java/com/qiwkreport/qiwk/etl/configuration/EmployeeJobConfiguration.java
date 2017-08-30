@@ -1,6 +1,10 @@
 package com.qiwkreport.qiwk.etl.configuration;
 
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -9,19 +13,27 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.partition.PartitionHandler;
 import org.springframework.batch.core.partition.support.TaskExecutorPartitionHandler;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.database.HibernatePagingItemReader;
+import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.batch.item.database.JpaPagingItemReader;
+import org.springframework.batch.item.database.Order;
+import org.springframework.batch.item.database.support.OraclePagingQueryProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.orm.jpa.JpaTransactionManager;
 
 import com.qiwkreport.qiwk.etl.domain.Employee;
 import com.qiwkreport.qiwk.etl.domain.NewEmployee;
 import com.qiwkreport.qiwk.etl.processor.EmployeeProcessor;
+import com.qiwkreport.qiwk.etl.reader.Reader;
 import com.qiwkreport.qiwk.etl.util.ColumnRangePartitioner;
 import com.qiwkreport.qiwk.etl.writer.JpaEmployeeItemWriter;
+import com.qiwkreport.qiwk.etl.writer.Writer;
 
 /**
  * This is configurations class for EmployeeJoB, this class is responsible for moving records from
@@ -38,7 +50,10 @@ public class EmployeeJobConfiguration{
 	
 	@Autowired
 	private QiwkJobsConfiguration configuration;
-
+	
+	@Autowired
+	private Writer writer;
+	
 	@Bean
 	public Job employeeJob() throws Exception {
 		return configuration.getJobBuilderFactory()
@@ -62,9 +77,9 @@ public class EmployeeJobConfiguration{
 		return configuration.getStepBuilderFactory()
 				.get("employeeSlaveStep")
 				.<Employee, NewEmployee>chunk(configuration.getChunkSize())
-				.reader(jpaEmployeeReader(null, null, null))
+				.reader(employeeReaderWithPartitioning(null, null,null))
 				.processor(employeeProcessor())
-				.writer(jpaEmployeeItemWriter())
+				.writer(writer.employeeWriter())
 				.build();
 	}
 	
@@ -99,10 +114,30 @@ public class EmployeeJobConfiguration{
 		return new EmployeeProcessor();
 	}
 	
+	
+	@Bean
+	public ItemWriter<NewEmployee> jpaEmployeeItemWriter() {
+		return new JpaEmployeeItemWriter();
+	}
+
 	/**
-	 * {@code} The @StepScope annotation is very imp, as this instantiate this
-	 * bean in spring context only when this is loaded
+	 * Below methods contains various reader for reading from DB, we have Hibernate based reader,
+	 * we have JDBC based readers with & without partitioning, & then 
+	 * we have JPA based reader.
+	 * We need to compare the performances of all 4 & use the one which suits Best.
 	 */
+	
+	
+	/**
+	 * JPA Based reader
+	 * 
+	 * @param fromId
+	 * @param toId
+	 * @param name
+	 * @return
+	 * @throws Exception
+	 */
+	
 	@Bean
 	@StepScope
 	public JpaPagingItemReader<Employee> jpaEmployeeReader(
@@ -119,10 +154,154 @@ public class EmployeeJobConfiguration{
 		return reader;
 	}
 	
+	/**
+	 * Hibernate based reader
+	 * 
+	 * @param fromId
+	 * @param toId
+	 * @param name
+	 * @return
+	 * @throws Exception
+	 */
+	
 	@Bean
-	public ItemWriter<NewEmployee> jpaEmployeeItemWriter() {
-		return new JpaEmployeeItemWriter();
+	@StepScope
+	public HibernatePagingItemReader<Employee> hibernateEmployeeItemReader(
+			@Value("#{stepExecutionContext[fromId]}") final String fromId,
+			@Value("#{stepExecutionContext[toId]}") final String toId,
+			@Value("#{stepExecutionContext[name]}") final String name) throws Exception {
+	    
+		HibernatePagingItemReader<Employee> hibernateReader=new HibernatePagingItemReader<>();
+		hibernateReader.setFetchSize(configuration.getChunkSize());
+		hibernateReader.setQueryString("FROM Employee o where o.id>=" + fromId + " and o.id <= " + toId +" order by o.id ASC");
+		hibernateReader.setSessionFactory(sessionFactory().getObject());
+		hibernateReader.setSaveState(false);
+		hibernateReader.afterPropertiesSet();
+		return hibernateReader;
 	}
+	
+	@Bean
+	public LocalSessionFactoryBean sessionFactory() throws IOException{
+		LocalSessionFactoryBean factoryBean = new LocalSessionFactoryBean();
+	    factoryBean.setDataSource(configuration.getDataSource());
+	    factoryBean.setAnnotatedPackages("com.qiwkreport.qiwk.etl.domain");
+	    factoryBean.afterPropertiesSet();
+		return factoryBean;
+	}
+	
+	
+	@Bean
+	public JpaTransactionManager transactionManager() {
+	    return new JpaTransactionManager();
+	}
+	
+	
+	/**
+	 * Following is JDBC based readers with partitioning logic
+	 * 
+	 * @param fromId
+	 * @param toId
+	 * @param name
+	 * @return
+	 * @throws Exception
+	 */
+	
+	@Bean
+	@StepScope
+	public JdbcPagingItemReader<Employee> employeeReaderWithPartitioning(
+			@Value("#{stepExecutionContext[fromId]}") final String fromId,
+			@Value("#{stepExecutionContext[toId]}") final String toId,
+			@Value("#{stepExecutionContext[name]}") final String name) throws Exception {
 
+		JdbcPagingItemReader<Employee> reader = new JdbcPagingItemReader<Employee>();
+		reader.setDataSource(configuration.getDataSource());
+		// the fetch size should be equal to chunk size for the performance reasons.
+		reader.setFetchSize(configuration.getChunkSize());
+		reader.setRowMapper((resultSet, i) -> {
+			return new Employee(resultSet.getLong("id"), 
+					resultSet.getString("firstName"),
+					resultSet.getString("lastName"),
+					resultSet.getString("village"),
+					resultSet.getString("street"),
+					resultSet.getString("city"),
+					resultSet.getString("district"),
+					resultSet.getString("state"),
+					resultSet.getString("pincode"),
+					resultSet.getString("managerid"),
+					resultSet.getString("managerName"));
+		});
+
+		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
+		provider.setSelectClause("id, firstName ,lastName, village, street , city, district, state, pincode, managerid, managerName");
+		provider.setFromClause("from EMPLOYEE");
+		provider.setWhereClause("where id>=" + fromId + " and id <=" + toId);
+
+		Map<String, Order> sortKeys = new HashMap<>(1);
+		sortKeys.put("id", Order.ASCENDING);
+		provider.setSortKeys(sortKeys);
+
+		reader.setQueryProvider(provider);
+		reader.afterPropertiesSet();
+		return reader;
+	}
+	
+	
+	/**
+	 * Following is JDBC based readers with no partitioning logic.
+	 * 
+	 * @param fromId
+	 * @param toId
+	 * @param name
+	 * @return
+	 * @throws Exception
+	 */
+	
+	@Bean
+	@StepScope
+	public JdbcPagingItemReader<Employee> readEmployeeWithoutPartitioning() throws Exception {
+
+		JdbcPagingItemReader<Employee> reader = new JdbcPagingItemReader<Employee>();
+		reader.setDataSource(configuration.getDataSource());
+		// the fetch size equal to chunk size for the performance reasons. 
+		reader.setFetchSize(configuration.getChunkSize());
+		reader.setRowMapper((resultSet, i) -> {
+			return new Employee(resultSet.getLong("id"), 
+					resultSet.getString("firstName"),
+					resultSet.getString("lastName"),
+					resultSet.getString("village"),
+					resultSet.getString("street"),
+					resultSet.getString("city"),
+					resultSet.getString("district"),
+					resultSet.getString("state"),
+					resultSet.getString("pincode"),
+					resultSet.getString("managerid"),
+					resultSet.getString("managerName"));
+		});
+
+		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
+		provider.setSelectClause("id, firstName ,lastName, village, street , city, district, state, pincode, managerid, managerName");
+		provider.setFromClause("from Employee");
+
+		Map<String, Order> sortKeys = new HashMap<>(1);
+		sortKeys.put("id", Order.ASCENDING);
+		provider.setSortKeys(sortKeys);
+
+		reader.setQueryProvider(provider);
+		reader.afterPropertiesSet();
+		return reader;
+	}
+ 
+	@Bean
+	public OraclePagingQueryProvider employeeQueryProvider() {
+		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
+		provider.setSelectClause(
+				"id, firstName ,lastName, village, street , city, district, state, pincode, managerid, managerName");
+		provider.setFromClause("from Employee");
+		provider.setWhereClause("where id >= :fromId and id <= :toId");
+		Map<String, Order> sortKeys = new HashMap<>(1);
+		sortKeys.put("id", Order.ASCENDING);
+		provider.setSortKeys(sortKeys);
+		return provider;
+	}
 }
 

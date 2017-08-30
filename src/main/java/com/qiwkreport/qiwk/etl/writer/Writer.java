@@ -1,8 +1,5 @@
 package com.qiwkreport.qiwk.etl.writer;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemWriter;
@@ -20,9 +17,6 @@ public class Writer {
 
 	@Autowired
 	public DataSource dataSource;
-
-	@PersistenceContext
-	private EntityManager entityManagerFactory;
 
 	@StepScope
 	@Bean

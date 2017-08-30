@@ -37,7 +37,7 @@ public class UserJobConfiguration {
 	@Autowired
 	private QiwkJobsConfiguration configuration;
 	
-	@Bean
+	//@Bean
 	public Job userJob() throws Exception {
 		return configuration.getJobBuilderFactory()
 				.get("UserJob")
@@ -121,7 +121,7 @@ public class UserJobConfiguration {
 	 *  DONOT Use the below implementation of JpaItemWriter code as
 	 *  some of records are getting missed . Investigation is pending.
 	 */
-	/*
+/*	
 	@StepScope
 	@Bean
 	public ItemWriter<NewUser> jpaUserItemWriter() throws Exception {
@@ -129,7 +129,7 @@ public class UserJobConfiguration {
 		JpaItemWriter<NewUser> writer = new JpaItemWriter<NewUser>();
 		writer.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
 		return writer;
-	}
+	}*/
 	
-	*/
+	
 }

@@ -1,5 +1,6 @@
 package com.qiwkreport.qiwk.etl.controller;
 
+
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -23,9 +25,9 @@ public class JobLaunchingController {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JobLaunchingController.class);
 
-	@RequestMapping(value = "qiwk/etl/start", method = RequestMethod.GET)
+	@RequestMapping(value = "qiwk/etl/{jobName}", method = RequestMethod.GET)
 	@ResponseStatus(code = HttpStatus.ACCEPTED)
-	public String launch() {
+	public String launch(@PathVariable String jobName) throws NoSuchJobException, JobInstanceAlreadyExistsException, JobParametersInvalidException {
 		LOGGER.info("FR Job Started" + System.currentTimeMillis());
 		Set<String> jobNames = jobOperator.getJobNames();
 		jobNames.parallelStream().forEach(job -> {

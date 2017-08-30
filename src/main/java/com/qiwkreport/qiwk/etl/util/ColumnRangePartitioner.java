@@ -80,7 +80,7 @@ public class ColumnRangePartitioner implements Partitioner {
 			value.putInt("fromId", start);
 			value.putInt("toId", end);
 			// give each thread a name, thread 1,2,3
-		//	value.putString("name", "Thread" + number);
+			value.putString("name", "Thread" + number);
 	/*		result.put("partition" + number, value);
 			System.out.println("\nStarting : Thread" + number);
 			System.out.println("fromId : " + start);
