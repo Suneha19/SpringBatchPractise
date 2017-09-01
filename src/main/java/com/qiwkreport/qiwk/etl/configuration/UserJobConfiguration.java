@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Import;
 import com.qiwkreport.qiwk.etl.domain.NewUser;
 import com.qiwkreport.qiwk.etl.domain.Olduser;
 import com.qiwkreport.qiwk.etl.processor.UserProcessor;
-import com.qiwkreport.qiwk.etl.util.UserRangePartitioner;
+import com.qiwkreport.qiwk.etl.util.ColumnRangePartitioner;
 import com.qiwkreport.qiwk.etl.writer.JpaUserItemWriter;
 
 /**
@@ -37,7 +37,7 @@ public class UserJobConfiguration {
 	@Autowired
 	private QiwkJobsConfiguration configuration;
 	
-	//@Bean
+	@Bean
 	public Job userJob() throws Exception {
 		return configuration.getJobBuilderFactory()
 				.get("UserJob")
@@ -66,8 +66,8 @@ public class UserJobConfiguration {
 	}
 	
 	@Bean
-	public UserRangePartitioner userPartitioner() {
-		UserRangePartitioner partitioner = new UserRangePartitioner();
+	public ColumnRangePartitioner userPartitioner() {
+		ColumnRangePartitioner partitioner = new ColumnRangePartitioner();
 		partitioner.setColumn("id");
 		partitioner.setDataSource(configuration.getDataSource());
 		partitioner.setTable("OLDUSER");
@@ -110,6 +110,8 @@ public class UserJobConfiguration {
 	public ItemWriter<NewUser> jpaUserItemWriter() {
 		return new JpaUserItemWriter();
 	}
+	
+	
 
 	@Bean
 	public ItemProcessor<Olduser, NewUser> userProcessor() {
@@ -121,8 +123,8 @@ public class UserJobConfiguration {
 	 *  DONOT Use the below implementation of JpaItemWriter code as
 	 *  some of records are getting missed . Investigation is pending.
 	 */
-/*	
-	@StepScope
+	
+/*	@StepScope
 	@Bean
 	public ItemWriter<NewUser> jpaUserItemWriter() throws Exception {
 

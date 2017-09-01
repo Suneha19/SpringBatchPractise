@@ -1,13 +1,8 @@
 package com.qiwkreport.qiwk.etl.reader;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-
-import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.database.HibernatePagingItemReader;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
@@ -17,23 +12,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
-import org.springframework.orm.jpa.JpaTransactionManager;
 
+import com.qiwkreport.qiwk.etl.configuration.QiwkJobsConfiguration;
 import com.qiwkreport.qiwk.etl.domain.Olduser;
 
 @Configuration
 public class Reader{
 	
 	@Autowired
-	public DataSource dataSource;
-	
-	@PersistenceContext
-    private EntityManager em;
-
-	@Value("${data.chunk.size}")
-	private int chunkSize;
-	
+	private QiwkJobsConfiguration configuration;
 	
 	/**
 	 * {@code} The @StepScope annotation is very imp, as this instantiate this
@@ -48,11 +35,10 @@ public class Reader{
 			@Value("#{stepExecutionContext[name]}") final String name) throws Exception {
 		
 		JdbcPagingItemReader<Olduser> reader = new JdbcPagingItemReader<Olduser>();
-		//HibernatePagingItemReader<T>
 		
-		reader.setDataSource(this.dataSource);
+		reader.setDataSource(configuration.getDataSource());
 		// this should be equal to chunk size for the performance reasons.
-		reader.setFetchSize(chunkSize);
+		reader.setFetchSize(configuration.getChunkSize());
 		reader.setRowMapper((resultSet, i) -> {
 			return new Olduser(
 					resultSet.getInt("id"), 
@@ -83,27 +69,12 @@ public class Reader{
 			@Value("#{stepExecutionContext[name]}") final String name) throws Exception {
 	    
 		HibernatePagingItemReader<Olduser> hibernateReader=new HibernatePagingItemReader<>();
-		hibernateReader.setFetchSize(chunkSize);
+		hibernateReader.setFetchSize(configuration.getChunkSize());
 		hibernateReader.setQueryString("FROM Olduser o where o.id>=" + fromId + " and o.id <= " + toId +" order by o.id ASC");
-		hibernateReader.setSessionFactory(sessionFactory().getObject());
+		hibernateReader.setSessionFactory(configuration.sessionFactory().getObject());
 		hibernateReader.setSaveState(false);
 		hibernateReader.afterPropertiesSet();
 		return hibernateReader;
-	}
-	
-	@Bean
-	public LocalSessionFactoryBean sessionFactory() throws IOException{
-		LocalSessionFactoryBean factoryBean = new LocalSessionFactoryBean();
-	    factoryBean.setDataSource(this.dataSource);
-	    factoryBean.setAnnotatedPackages("com.qiwkreport.qiwk.etl.domain");
-	    factoryBean.afterPropertiesSet();
-		return factoryBean;
-	}
-	
-	
-	@Bean
-	public JpaTransactionManager transactionManager() {
-	    return new JpaTransactionManager();
 	}
 	
 	

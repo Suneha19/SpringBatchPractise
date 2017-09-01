@@ -13,6 +13,7 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.partition.PartitionHandler;
 import org.springframework.batch.core.partition.support.TaskExecutorPartitionHandler;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.database.HibernateItemWriter;
 import org.springframework.batch.item.database.HibernatePagingItemReader;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.batch.item.database.JpaPagingItemReader;
@@ -30,10 +31,8 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import com.qiwkreport.qiwk.etl.domain.Employee;
 import com.qiwkreport.qiwk.etl.domain.NewEmployee;
 import com.qiwkreport.qiwk.etl.processor.EmployeeProcessor;
-import com.qiwkreport.qiwk.etl.reader.Reader;
 import com.qiwkreport.qiwk.etl.util.ColumnRangePartitioner;
 import com.qiwkreport.qiwk.etl.writer.JpaEmployeeItemWriter;
-import com.qiwkreport.qiwk.etl.writer.Writer;
 
 /**
  * This is configurations class for EmployeeJoB, this class is responsible for moving records from
@@ -50,9 +49,6 @@ public class EmployeeJobConfiguration{
 	
 	@Autowired
 	private QiwkJobsConfiguration configuration;
-	
-	@Autowired
-	private Writer writer;
 	
 	@Bean
 	public Job employeeJob() throws Exception {
@@ -77,9 +73,9 @@ public class EmployeeJobConfiguration{
 		return configuration.getStepBuilderFactory()
 				.get("employeeSlaveStep")
 				.<Employee, NewEmployee>chunk(configuration.getChunkSize())
-				.reader(employeeReaderWithPartitioning(null, null,null))
+				.reader(jpaEmployeeReader(null, null, null))
 				.processor(employeeProcessor())
-				.writer(writer.employeeWriter())
+				.writer(jpaEmployeeItemWriter())
 				.build();
 	}
 	
@@ -119,6 +115,14 @@ public class EmployeeJobConfiguration{
 	public ItemWriter<NewEmployee> jpaEmployeeItemWriter() {
 		return new JpaEmployeeItemWriter();
 	}
+	
+	@StepScope
+	@Bean
+	public ItemWriter<NewEmployee> hibernateEmployeeItemWriter() throws IOException {
+	        HibernateItemWriter<NewEmployee> itemWriter = new HibernateItemWriter<>();
+	        itemWriter.setSessionFactory(sessionFactory().getObject());
+	        return itemWriter;
+	}
 
 	/**
 	 * Below methods contains various reader for reading from DB, we have Hibernate based reader,
@@ -129,7 +133,7 @@ public class EmployeeJobConfiguration{
 	
 	
 	/**
-	 * JPA Based reader
+	 * JPA Based reader with partitioning 
 	 * 
 	 * @param fromId
 	 * @param toId
@@ -154,8 +158,55 @@ public class EmployeeJobConfiguration{
 		return reader;
 	}
 	
+
 	/**
-	 * Hibernate based reader
+	 * JPA Based reader without partitioning 
+	 * 
+	 * @param fromId
+	 * @param toId
+	 * @param name
+	 * @return
+	 * @throws Exception
+	 */
+	@Bean
+	@StepScope
+	public JpaPagingItemReader<Employee> jpaEmployeeReaderWithoutPartitioning() throws Exception {
+
+		JpaPagingItemReader<Employee> reader = new JpaPagingItemReader<Employee>();
+		reader.setPageSize(configuration.getChunkSize());
+		reader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
+		reader.setQueryString("FROM Employee");
+		reader.setSaveState(false);
+		reader.afterPropertiesSet();
+		return reader;
+	}
+	
+	
+	/**
+	 * Hibernate based reader without partitioning
+	 * 
+	 * @param fromId
+	 * @param toId
+	 * @param name
+	 * @return
+	 * @throws Exception
+	 */
+	
+	@Bean
+	@StepScope
+	public HibernatePagingItemReader<Employee> hibernateEmployeeItemReaderWithoutPartitioning() throws Exception {
+	    
+		HibernatePagingItemReader<Employee> hibernateReader=new HibernatePagingItemReader<>();
+		hibernateReader.setFetchSize(configuration.getChunkSize());
+		hibernateReader.setQueryString("FROM Employee");
+		hibernateReader.setSessionFactory(sessionFactory().getObject());
+		hibernateReader.setSaveState(false);
+		hibernateReader.afterPropertiesSet();
+		return hibernateReader;
+	}
+	
+	/**
+	 * Hibernate based reader with partitioning logic
 	 * 
 	 * @param fromId
 	 * @param toId
@@ -184,7 +235,8 @@ public class EmployeeJobConfiguration{
 	public LocalSessionFactoryBean sessionFactory() throws IOException{
 		LocalSessionFactoryBean factoryBean = new LocalSessionFactoryBean();
 	    factoryBean.setDataSource(configuration.getDataSource());
-	    factoryBean.setAnnotatedPackages("com.qiwkreport.qiwk.etl.domain");
+	   // factoryBean.setAnnotatedPackages("com.qiwkreport.qiwk.etl.domain");
+	    factoryBean.setPackagesToScan("com.qiwkreport.qiwk.etl.domain");
 	    factoryBean.afterPropertiesSet();
 		return factoryBean;
 	}
@@ -192,7 +244,8 @@ public class EmployeeJobConfiguration{
 	
 	@Bean
 	public JpaTransactionManager transactionManager() {
-	    return new JpaTransactionManager();
+	    JpaTransactionManager jpaTransactionManager = new JpaTransactionManager();
+		return jpaTransactionManager;
 	}
 	
 	

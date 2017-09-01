@@ -2,16 +2,19 @@ package com.qiwkreport.qiwk.etl.domain;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 @Entity
 @Table(name = "NEWUSER")
 public class NewUser {
 
+	/**
+	 * {@code}
+	 *  Don't include any Hibernate generator here, as before insertion update operation is called by hibernate using ids
+	 *  if we use generator , Hibernate will generate its own id and try to move it.And then it will throw
+	 *  org.hibernate.StaleStateException exception
+	 */
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "ID")
 	int id;
 	@Column(name = "USERNAME")

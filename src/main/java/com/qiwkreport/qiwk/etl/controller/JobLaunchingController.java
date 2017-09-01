@@ -11,7 +11,6 @@ import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -25,20 +24,22 @@ public class JobLaunchingController {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JobLaunchingController.class);
 
-	@RequestMapping(value = "qiwk/etl/{jobName}", method = RequestMethod.GET)
+	@RequestMapping(value = "qiwk/etl/", method = RequestMethod.GET)
 	@ResponseStatus(code = HttpStatus.ACCEPTED)
-	public String launch(@PathVariable String jobName) throws NoSuchJobException, JobInstanceAlreadyExistsException, JobParametersInvalidException {
+	public String launch(){
 		LOGGER.info("FR Job Started" + System.currentTimeMillis());
 		Set<String> jobNames = jobOperator.getJobNames();
 		jobNames.parallelStream().forEach(job -> {
 			try {
+				LOGGER.info(job+" Started");
 				jobOperator.start(job, null);
 			} catch (NoSuchJobException | JobInstanceAlreadyExistsException | JobParametersInvalidException e) {
+				LOGGER.error("Exception occured while executing the job ");
 				e.printStackTrace();
 			}
 		});
 		LOGGER.info("FR Job Finished" + System.currentTimeMillis());
-		return "FR Job Completed Sucessfully !";
+		return "Job Completed Sucessfully !";
 	}
 
 }

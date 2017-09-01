@@ -1,4 +1,4 @@
-package com.qiwkreport.qiwk.etl.writer;
+/*package com.qiwkreport.qiwk.etl.writer;
 
 import java.util.List;
 
@@ -7,19 +7,19 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.HibernateItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.qiwkreport.qiwk.etl.domain.NewUser;
+import com.qiwkreport.qiwk.etl.domain.NewEmployee;
 
-public class HibernateUserItemWriter implements ItemWriter<NewUser> {
+public class HibernateEmployeeItemWriter implements ItemWriter<NewEmployee> {
 
 	@Autowired
 	private SessionFactory sessionFactory;
 
 	@Override
-	public void write(List<? extends NewUser> items) throws Exception {
-		HibernateItemWriter<NewUser> hibernateItemWriter=new HibernateItemWriter<>();
+	public void write(List<? extends NewEmployee> items) throws Exception {
+		HibernateItemWriter<NewEmployee> hibernateItemWriter=new HibernateItemWriter<>();
 		hibernateItemWriter.setSessionFactory(sessionFactory);
-		hibernateItemWriter.write(items);
 		hibernateItemWriter.afterPropertiesSet();
 	}
 
 }
+*/

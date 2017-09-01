@@ -1,6 +1,8 @@
 
 package com.qiwkreport.qiwk.etl.configuration;
 
+import java.io.IOException;
+
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
@@ -9,10 +11,10 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import com.qiwkreport.qiwk.etl.reader.Reader;
-import com.qiwkreport.qiwk.etl.writer.Writer;
+import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.orm.jpa.JpaTransactionManager;
 
 /**
  * This contains all the common job related configuration 
@@ -34,12 +36,6 @@ public class QiwkJobsConfiguration {
 	@Autowired
 	private TaskExecutorConfiguration taskExecutorConfiguration;
 	
-	@Autowired
-	private Reader reader; 
-	
-	@Autowired
-	private Writer writer; 
-	
 	@PersistenceContext
     private EntityManager entityManager;
 
@@ -48,6 +44,23 @@ public class QiwkJobsConfiguration {
 	
 	@Value("${partition.grid.size}")
 	private int gridSize;
+	
+	
+	@Bean
+	public LocalSessionFactoryBean sessionFactory() throws IOException{
+		LocalSessionFactoryBean factoryBean = new LocalSessionFactoryBean();
+	    factoryBean.setDataSource(this.dataSource);
+	   // factoryBean.setAnnotatedPackages("com.qiwkreport.qiwk.etl.domain");
+	    factoryBean.setPackagesToScan("com.qiwkreport.qiwk.etl.domain");
+	    factoryBean.afterPropertiesSet();
+		return factoryBean;
+	}
+	
+	
+	@Bean
+	public JpaTransactionManager transactionManager() {
+	    return new JpaTransactionManager();
+	}
 
 	public EntityManager getEntityManager() {
 		return entityManager;
@@ -89,21 +102,6 @@ public class QiwkJobsConfiguration {
 		this.taskExecutorConfiguration = taskExecutorConfiguration;
 	}
 
-	public Reader getReader() {
-		return reader;
-	}
-
-	public void setReader(Reader reader) {
-		this.reader = reader;
-	}
-
-	public Writer getWriter() {
-		return writer;
-	}
-
-	public void setWriter(Writer writer) {
-		this.writer = writer;
-	}
 
 	public int getChunkSize() {
 		return chunkSize;
@@ -125,8 +123,9 @@ public class QiwkJobsConfiguration {
 	public String toString() {
 		return "QiwkJobsConfiguration [jobBuilderFactory=" + jobBuilderFactory + ", stepBuilderFactory="
 				+ stepBuilderFactory + ", dataSource=" + dataSource + ", taskExecutorConfiguration="
-				+ taskExecutorConfiguration + ", reader=" + reader + ", writer=" + writer + ", entityManager="
-				+ entityManager + ", chunkSize=" + chunkSize + ", gridSize=" + gridSize + "]";
+				+ taskExecutorConfiguration + ", entityManager=" + entityManager + ", chunkSize=" + chunkSize
+				+ ", gridSize=" + gridSize + "]";
 	}
+
 	
 }
