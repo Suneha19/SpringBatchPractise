@@ -1,5 +1,5 @@
 
-package com.qiwkreport.qiwk.etl.configuration;
+package com.qiwkreport.qiwk.etl.common;
 
 import java.io.IOException;
 

@@ -16,10 +16,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+import com.qiwkreport.qiwk.etl.common.BatchJobConfiguration;
+import com.qiwkreport.qiwk.etl.common.ColumnRangePartitioner;
+import com.qiwkreport.qiwk.etl.common.QiwkJobsConfiguration;
 import com.qiwkreport.qiwk.etl.domain.NewUser;
 import com.qiwkreport.qiwk.etl.domain.Olduser;
 import com.qiwkreport.qiwk.etl.processor.UserProcessor;
-import com.qiwkreport.qiwk.etl.util.ColumnRangePartitioner;
 import com.qiwkreport.qiwk.etl.writer.JpaUserItemWriter;
 
 /**

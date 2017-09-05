@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.qiwkreport.qiwk.etl.configuration;
+package com.qiwkreport.qiwk.etl.common;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

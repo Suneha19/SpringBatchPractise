@@ -1,4 +1,4 @@
-package com.qiwkreport.qiwk.etl.configuration;
+package com.qiwkreport.qiwk.etl.common;
 
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;

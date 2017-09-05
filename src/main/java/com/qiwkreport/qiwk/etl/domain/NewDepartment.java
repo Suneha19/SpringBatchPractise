@@ -18,7 +18,7 @@ public class NewDepartment {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name="DEPARTMENTID")
-	private String departmentId;
+	private long departmentId;
 	
 	@Column(name="DEPARTMENTNAME")
 	private String departmentName;
@@ -33,7 +33,7 @@ public class NewDepartment {
 		super();
 	}
 
-	public NewDepartment(String departmentId, String departmentName, String departmentLocation, String departmentWork) {
+	public NewDepartment(long departmentId, String departmentName, String departmentLocation, String departmentWork) {
 		super();
 		this.departmentId = departmentId;
 		this.departmentName = departmentName;
@@ -42,11 +42,11 @@ public class NewDepartment {
 	}
 
 
-	public String getDepartmentId() {
+	public long getDepartmentId() {
 		return departmentId;
 	}
 
-	public void setDepartmentId(String departmentId) {
+	public void setDepartmentId(long departmentId) {
 		this.departmentId = departmentId;
 	}
 

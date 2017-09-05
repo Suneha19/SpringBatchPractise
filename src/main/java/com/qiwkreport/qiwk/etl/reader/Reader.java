@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.qiwkreport.qiwk.etl.configuration.QiwkJobsConfiguration;
+import com.qiwkreport.qiwk.etl.common.QiwkJobsConfiguration;
 import com.qiwkreport.qiwk.etl.domain.Olduser;
 
 @Configuration
@@ -26,6 +26,7 @@ public class Reader{
 	 * {@code} The @StepScope annotation is very imp, as this instantiate this
 	 * bean in spring context only when this is loaded
 	 */
+	
 	
 	@Bean
 	@StepScope

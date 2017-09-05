@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.qiwkreport.qiwk.etl.util;
+package com.qiwkreport.qiwk.etl.common;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +16,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author abhilash
  *
  */
-public class UserRangePartitioner implements Partitioner {
+public class ColumnRangePartitioner implements Partitioner {
 	
 	private JdbcOperations jdbcTemplate;
 
@@ -79,9 +79,14 @@ public class UserRangePartitioner implements Partitioner {
 			}
 			value.putInt("fromId", start);
 			value.putInt("toId", end);
-			//give each thread a name, thread 1,2,3
+			// give each thread a name, thread 1,2,3
 			value.putString("name", "Thread" + number);
-    		start += targetSize;
+	/*		result.put("partition" + number, value);
+			System.out.println("\nStarting : Thread" + number);
+			System.out.println("fromId : " + start);
+			System.out.println("toId : " +end);
+			//System.out.println("name :" +name);
+*/			start += targetSize;
 			end += targetSize;
 			number++;
 		}

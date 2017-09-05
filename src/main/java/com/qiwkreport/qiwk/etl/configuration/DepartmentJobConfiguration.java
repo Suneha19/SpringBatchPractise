@@ -32,14 +32,14 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import com.qiwkreport.qiwk.etl.common.BatchJobConfiguration;
 import com.qiwkreport.qiwk.etl.common.ColumnRangePartitioner;
 import com.qiwkreport.qiwk.etl.common.QiwkJobsConfiguration;
-import com.qiwkreport.qiwk.etl.domain.Employee;
-import com.qiwkreport.qiwk.etl.domain.NewEmployee;
-import com.qiwkreport.qiwk.etl.processor.EmployeeProcessor;
-import com.qiwkreport.qiwk.etl.writer.JpaEmployeeItemWriter;
+import com.qiwkreport.qiwk.etl.domain.Department;
+import com.qiwkreport.qiwk.etl.domain.NewDepartment;
+import com.qiwkreport.qiwk.etl.processor.DepartmentProcessor;
+import com.qiwkreport.qiwk.etl.writer.JpaDepartmentItemWriter;
 
 /**
- * This is configurations class for EmployeeJoB, this class is responsible for moving records from
- * Employee table to NewEmployee table
+ * This is configurations class for Department table, this class is responsible for moving records from
+ * Department table to NewDepartment table
  * 
  * @author Abhilash
  *
@@ -48,46 +48,46 @@ import com.qiwkreport.qiwk.etl.writer.JpaEmployeeItemWriter;
 @Configuration
 @EnableBatchProcessing
 @Import(BatchJobConfiguration.class)
-public class EmployeeJobConfiguration{
+public class DepartmentJobConfiguration{
 	
 	@Autowired
 	private QiwkJobsConfiguration configuration;
 	
 	@Bean
-	public Job employeeJob() throws Exception {
+	public Job departmentJob() throws Exception {
 		return configuration.getJobBuilderFactory()
-				.get("EmployeeJob")
+				.get("DepartmentJob")
 				.incrementer(new RunIdIncrementer())
-				.start(employeeMasterStep())
+				.start(departmentMasterStep())
 				.build();
 	}
 
 	@Bean
-	public Step employeeMasterStep() throws Exception {
+	public Step departmentMasterStep() throws Exception {
 		return configuration.getStepBuilderFactory()
-				.get("employeeMasterStep")
-				.partitioner(employeeSlaveStep().getName(), columnRangePartitioner())
-				.partitionHandler(employeeMasterSlaveHandler())
+				.get("departmentMasterStep")
+				.partitioner(departmentSlaveStep().getName(), columnRangePartitioner())
+				.partitionHandler(departmentMasterSlaveHandler())
 				.build();
 	}
 	
 	@Bean
-	public Step employeeSlaveStep() throws Exception {
+	public Step departmentSlaveStep() throws Exception {
 		return configuration.getStepBuilderFactory()
-				.get("employeeSlaveStep")
-				.<Employee, NewEmployee>chunk(configuration.getChunkSize())
-				.reader(jpaEmployeeReader(null, null, null))
-				.processor(employeeProcessor())
-				.writer(jpaEmployeeItemWriter())
+				.get("departmentSlaveStep")
+				.<Department, NewDepartment>chunk(configuration.getChunkSize())
+				.reader(jpaDepartmentReader(null, null, null))
+				.processor(departmentProcessor())
+				.writer(jpaDepartmentItemWriter())
 				.build();
 	}
 	
 	@Bean
-	public PartitionHandler employeeMasterSlaveHandler() throws Exception {
+	public PartitionHandler departmentMasterSlaveHandler() throws Exception {
 		TaskExecutorPartitionHandler handler = new TaskExecutorPartitionHandler();
 		handler.setGridSize(configuration.getGridSize());
 		handler.setTaskExecutor(taskExecutor());
-		handler.setStep(employeeSlaveStep());
+		handler.setStep(departmentSlaveStep());
 		handler.afterPropertiesSet();
 		
 		return handler;
@@ -98,7 +98,7 @@ public class EmployeeJobConfiguration{
 		ColumnRangePartitioner partitioner = new ColumnRangePartitioner();
 		partitioner.setColumn("id");
 		partitioner.setDataSource(configuration.getDataSource());
-		partitioner.setTable("EMPLOYEE");
+		partitioner.setTable("DEPARTMENT");
 		return partitioner;
 	}
 
@@ -109,20 +109,20 @@ public class EmployeeJobConfiguration{
 	}
 
 	@Bean
-	public EmployeeProcessor employeeProcessor() {
-		return new EmployeeProcessor();
+	public DepartmentProcessor departmentProcessor() {
+		return new DepartmentProcessor();
 	}
 	
 	
 	@Bean
-	public ItemWriter<NewEmployee> jpaEmployeeItemWriter() {
-		return new JpaEmployeeItemWriter();
+	public ItemWriter<NewDepartment> jpaDepartmentItemWriter() {
+		return new JpaDepartmentItemWriter<NewDepartment>();
 	}
 	
 	@StepScope
 	@Bean
-	public ItemWriter<NewEmployee> hibernateEmployeeItemWriter() throws IOException {
-	        HibernateItemWriter<NewEmployee> itemWriter = new HibernateItemWriter<>();
+	public ItemWriter<NewDepartment> hibernateDepartmentItemWriter() throws IOException {
+	        HibernateItemWriter<NewDepartment> itemWriter = new HibernateItemWriter<>();
 	        itemWriter.setSessionFactory(sessionFactory().getObject());
 	        return itemWriter;
 	}
@@ -147,16 +147,16 @@ public class EmployeeJobConfiguration{
 	
 	@Bean
 	@StepScope
-	public JpaPagingItemReader<Employee> jpaEmployeeReader(
+	public JpaPagingItemReader<Department> jpaDepartmentReader(
 			@Value("#{stepExecutionContext[fromId]}") final String fromId,
 			@Value("#{stepExecutionContext[toId]}") final String toId,
 			@Value("#{stepExecutionContext[name]}") final String name) throws Exception {
 
-		JpaPagingItemReader<Employee> reader = new JpaPagingItemReader<Employee>();
+		JpaPagingItemReader<Department> reader = new JpaPagingItemReader<Department>();
 		reader.setPageSize(configuration.getChunkSize());
 		reader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
-		//reader.setQueryString("FROM Employee e e.id>=" + fromId + " and e.id <= " + toId +" order by e.id ASC");
-		reader.setQueryString("FROM Employee e where e.id>=" + fromId + " and e.id <= " + toId +" order by e.id ASC");
+		//reader.setQueryString("FROM Department d d.id>=" + fromId + " and d.id <= " + toId +" order by d.id ASC");
+		reader.setQueryString("FROM Department o where o.id>=" + fromId + " and o.id <= " + toId +" order by o.id ASC");
 		reader.setSaveState(false);
 		reader.afterPropertiesSet();
 		return reader;
@@ -174,12 +174,12 @@ public class EmployeeJobConfiguration{
 	 */
 	@Bean
 	@StepScope
-	public JpaPagingItemReader<Employee> jpaEmployeeReaderWithoutPartitioning() throws Exception {
+	public JpaPagingItemReader<Department> jpaDepartmentReaderWithoutPartitioning() throws Exception {
 
-		JpaPagingItemReader<Employee> reader = new JpaPagingItemReader<Employee>();
+		JpaPagingItemReader<Department> reader = new JpaPagingItemReader<Department>();
 		reader.setPageSize(configuration.getChunkSize());
 		reader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
-		reader.setQueryString("FROM Employee");
+		reader.setQueryString("FROM Department");
 		reader.setSaveState(false);
 		reader.afterPropertiesSet();
 		return reader;
@@ -198,11 +198,11 @@ public class EmployeeJobConfiguration{
 	
 	@Bean
 	@StepScope
-	public HibernatePagingItemReader<Employee> hibernateEmployeeItemReaderWithoutPartitioning() throws Exception {
+	public HibernatePagingItemReader<Department> hibernateDepartmentItemReaderWithoutPartitioning() throws Exception {
 	    
-		HibernatePagingItemReader<Employee> hibernateReader=new HibernatePagingItemReader<>();
+		HibernatePagingItemReader<Department> hibernateReader=new HibernatePagingItemReader<>();
 		hibernateReader.setFetchSize(configuration.getChunkSize());
-		hibernateReader.setQueryString("FROM Employee");
+		hibernateReader.setQueryString("FROM Department");
 		hibernateReader.setSessionFactory(sessionFactory().getObject());
 		hibernateReader.setSaveState(false);
 		hibernateReader.afterPropertiesSet();
@@ -221,14 +221,14 @@ public class EmployeeJobConfiguration{
 	
 	@Bean
 	@StepScope
-	public HibernatePagingItemReader<Employee> hibernateEmployeeItemReader(
+	public HibernatePagingItemReader<Department> hibernateDepartmentItemReader(
 			@Value("#{stepExecutionContext[fromId]}") final String fromId,
 			@Value("#{stepExecutionContext[toId]}") final String toId,
 			@Value("#{stepExecutionContext[name]}") final String name) throws Exception {
 	    
-		HibernatePagingItemReader<Employee> hibernateReader=new HibernatePagingItemReader<>();
+		HibernatePagingItemReader<Department> hibernateReader=new HibernatePagingItemReader<>();
 		hibernateReader.setFetchSize(configuration.getChunkSize());
-		hibernateReader.setQueryString("FROM Employee o where o.id>=" + fromId + " and o.id <= " + toId +" order by o.id ASC");
+		hibernateReader.setQueryString("FROM Department o where o.id>=" + fromId + " and o.id <= " + toId +" order by o.id ASC");
 		hibernateReader.setSessionFactory(sessionFactory().getObject());
 		hibernateReader.setSaveState(false);
 		hibernateReader.afterPropertiesSet();
@@ -265,34 +265,20 @@ public class EmployeeJobConfiguration{
 	
 	@Bean
 	@StepScope
-	public JdbcPagingItemReader<Employee> employeeReaderWithPartitioning(
+	public JdbcPagingItemReader<Department> departmentReaderWithPartitioning(
 			@Value("#{stepExecutionContext[fromId]}") final String fromId,
 			@Value("#{stepExecutionContext[toId]}") final String toId,
 			@Value("#{stepExecutionContext[name]}") final String name) throws Exception {
 
-		JdbcPagingItemReader<Employee> reader = new JdbcPagingItemReader<Employee>();
+		JdbcPagingItemReader<Department> reader = new JdbcPagingItemReader<Department>();
 		reader.setDataSource(configuration.getDataSource());
 		// the fetch size should be equal to chunk size for the performance reasons.
 		reader.setFetchSize(configuration.getChunkSize());
-/*		reader.setRowMapper((resultSet, i) -> {
-			return new Employee(resultSet.getLong("id"), 
-					resultSet.getString("firstName"),
-					resultSet.getString("lastName"),
-					resultSet.getString("village"),
-					resultSet.getString("street"),
-					resultSet.getString("city"),
-					resultSet.getString("district"),
-					resultSet.getString("state"),
-					resultSet.getString("pincode"),
-					resultSet.getString("managerid"),
-					resultSet.getString("managerName"),
-					(Department) resultSet.getObject("departmentId"));
-		});*/
 
-		reader.setRowMapper(new BeanPropertyRowMapper<>(Employee.class));
+		reader.setRowMapper(new BeanPropertyRowMapper<>(Department.class));
 		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
-		provider.setSelectClause("id, firstName ,lastName, village, street , city, district, state, pincode, managerid, managerName");
-		provider.setFromClause("from EMPLOYEE");
+		provider.setSelectClause("DEPARTMENTID, DEPARTMENTNAME ,DEPARTMENTLOCATION, DEPARTMENTWORK");
+		provider.setFromClause("from DEPARTMENT");
 		provider.setWhereClause("where id>=" + fromId + " and id <=" + toId);
 
 		Map<String, Order> sortKeys = new HashMap<>(1);
@@ -317,30 +303,16 @@ public class EmployeeJobConfiguration{
 	
 	@Bean
 	@StepScope
-	public JdbcPagingItemReader<Employee> readEmployeeWithoutPartitioning() throws Exception {
+	public JdbcPagingItemReader<Department> readEmployeeWithoutPartitioning() throws Exception {
 
-		JdbcPagingItemReader<Employee> reader = new JdbcPagingItemReader<Employee>();
+		JdbcPagingItemReader<Department> reader = new JdbcPagingItemReader<Department>();
 		reader.setDataSource(configuration.getDataSource());
 		// the fetch size equal to chunk size for the performance reasons. 
 		reader.setFetchSize(configuration.getChunkSize());
-/*		reader.setRowMapper((resultSet, i) -> {
-			return new Employee(resultSet.getLong("id"), 
-					resultSet.getString("firstName"),
-					resultSet.getString("lastName"),
-					resultSet.getString("village"),
-					resultSet.getString("street"),
-					resultSet.getString("city"),
-					resultSet.getString("district"),
-					resultSet.getString("state"),
-					resultSet.getString("pincode"),
-					resultSet.getString("managerid"),
-					resultSet.getString("managerName"),
-					(Department) resultSet.getObject("departmentId"));
-		});*/
-		reader.setRowMapper(new BeanPropertyRowMapper<>(Employee.class));
+		reader.setRowMapper(new BeanPropertyRowMapper<>(Department.class));
 		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
-		provider.setSelectClause("id, firstName ,lastName, village, street , city, district, state, pincode, managerid, managerName");
-		provider.setFromClause("from Employee");
+		provider.setSelectClause("DEPARTMENTID, DEPARTMENTNAME ,DEPARTMENTLOCATION, DEPARTMENTWORK");
+		provider.setFromClause("from Department");
 
 		Map<String, Order> sortKeys = new HashMap<>(1);
 		sortKeys.put("id", Order.ASCENDING);
@@ -355,8 +327,8 @@ public class EmployeeJobConfiguration{
 	public OraclePagingQueryProvider employeeQueryProvider() {
 		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
 		provider.setSelectClause(
-				"id, firstName ,lastName, village, street , city, district, state, pincode, managerid, managerName");
-		provider.setFromClause("from Employee");
+				"DEPARTMENTID, DEPARTMENTNAME ,DEPARTMENTLOCATION, DEPARTMENTWORK");
+		provider.setFromClause("from Department");
 		provider.setWhereClause("where id >= :fromId and id <= :toId");
 		Map<String, Order> sortKeys = new HashMap<>(1);
 		sortKeys.put("id", Order.ASCENDING);

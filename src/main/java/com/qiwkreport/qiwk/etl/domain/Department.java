@@ -15,28 +15,28 @@ import javax.persistence.Table;
  *
  */
 @Entity
-@Table(name="DEPARTMENT")
+@Table(name = "DEPARTMENT")
 public class Department {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name="DEPARTMENTID")
-	private String departmentId;
-	
-	@Column(name="DEPARTMENTNAME")
+	@Column(name = "DEPARTMENTID")
+	private long departmentId;
+
+	@Column(name = "DEPARTMENTNAME")
 	private String departmentName;
-	
-	@Column(name="DEPARTMENTLOCATION")
+
+	@Column(name = "DEPARTMENTLOCATION")
 	private String departmentLocation;
-	
-	@Column(name="DEPARTMENTWORK")
+
+	@Column(name = "DEPARTMENTWORK")
 	private String departmentWork;
 
 	public Department() {
 		super();
 	}
 
-	public Department(String departmentId, String departmentName, String departmentLocation, String departmentWork) {
+	public Department(long departmentId, String departmentName, String departmentLocation, String departmentWork) {
 		super();
 		this.departmentId = departmentId;
 		this.departmentName = departmentName;
@@ -44,12 +44,11 @@ public class Department {
 		this.departmentWork = departmentWork;
 	}
 
-
-	public String getDepartmentId() {
+	public long getDepartmentId() {
 		return departmentId;
 	}
 
-	public void setDepartmentId(String departmentId) {
+	public void setDepartmentId(long departmentId) {
 		this.departmentId = departmentId;
 	}
 
@@ -82,6 +81,5 @@ public class Department {
 		return "Department [departmentId=" + departmentId + ", departmentName=" + departmentName
 				+ ", departmentLocation=" + departmentLocation + ", departmentWork=" + departmentWork + "]";
 	}
-	
-	
+
 }
