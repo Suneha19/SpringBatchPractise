@@ -5,6 +5,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 @Entity
@@ -35,9 +37,19 @@ public class Employee {
 	private String managerid;
 	@Column(name = "MANAGERNAME")
 	private String managerName;
+	@OneToOne
+	@JoinColumn(name="DEPARTMENTID")
+	private Department department;
+	
+
+	public Employee() {
+		super();
+	}
+
 
 	public Employee(long id, String firstName, String lastName, String village, String street, String city,
-			String district, String state, String pincode, String managerid, String managerName) {
+			String district, String state, String pincode, String managerid, String managerName,
+			Department department) {
 		super();
 		this.id = id;
 		this.firstName = firstName;
@@ -50,11 +62,9 @@ public class Employee {
 		this.pincode = pincode;
 		this.managerid = managerid;
 		this.managerName = managerName;
+		this.department = department;
 	}
 
-	public Employee() {
-		super();
-	}
 
 	public long getId() {
 		return id;
@@ -144,11 +154,24 @@ public class Employee {
 		this.managerName = managerName;
 	}
 
+
+	public Department getDepartment() {
+		return department;
+	}
+
+
+	public void setDepartment(Department department) {
+		this.department = department;
+	}
+
+
 	@Override
 	public String toString() {
 		return "Employee [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", village=" + village
 				+ ", street=" + street + ", city=" + city + ", district=" + district + ", state=" + state + ", pincode="
-				+ pincode + ", managerid=" + managerid + ", managerName=" + managerName + "]";
+				+ pincode + ", managerid=" + managerid + ", managerName=" + managerName + ", department=" + department
+				+ "]";
 	}
+
 
 }

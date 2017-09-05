@@ -281,7 +281,8 @@ public class EmployeeJobConfiguration{
 					resultSet.getString("state"),
 					resultSet.getString("pincode"),
 					resultSet.getString("managerid"),
-					resultSet.getString("managerName"));
+					resultSet.getString("managerName"),
+					resultSet.getLong("departmentId"));
 		});
 
 		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
@@ -328,7 +329,8 @@ public class EmployeeJobConfiguration{
 					resultSet.getString("state"),
 					resultSet.getString("pincode"),
 					resultSet.getString("managerid"),
-					resultSet.getString("managerName"));
+					resultSet.getString("managerName"),
+					resultSet.getLong("departmentId"));
 		});
 
 		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();

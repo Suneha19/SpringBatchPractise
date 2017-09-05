@@ -3,6 +3,8 @@ package com.qiwkreport.qiwk.etl.domain;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 @Entity
@@ -38,9 +40,18 @@ public class NewEmployee {
 	private String managerid;
 	@Column(name = "MANAGERNAME")
 	private String managerName;
+	@OneToOne
+	@JoinColumn(name="DEPARTMENTID")
+	private NewDepartment newDepartment;
 
+	public NewEmployee() {
+		super();
+	}
+
+	
 	public NewEmployee(long id, String firstName, String lastName, String village, String street, String city,
-			String district, String state, String pincode, String managerid, String managerName) {
+			String district, String state, String pincode, String managerid, String managerName,
+			NewDepartment newDepartment) {
 		super();
 		this.id = id;
 		this.firstName = firstName;
@@ -53,11 +64,9 @@ public class NewEmployee {
 		this.pincode = pincode;
 		this.managerid = managerid;
 		this.managerName = managerName;
+		this.newDepartment = newDepartment;
 	}
 
-	public NewEmployee() {
-		super();
-	}
 
 	public long getId() {
 		return id;
@@ -147,11 +156,25 @@ public class NewEmployee {
 		this.managerName = managerName;
 	}
 
+
+
+	public NewDepartment getNewDepartment() {
+		return newDepartment;
+	}
+
+
+
+	public void setNewDepartment(NewDepartment newDepartment) {
+		this.newDepartment = newDepartment;
+	}
+
+
 	@Override
 	public String toString() {
-		return "Employee [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", village=" + village
+		return "NewEmployee [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", village=" + village
 				+ ", street=" + street + ", city=" + city + ", district=" + district + ", state=" + state + ", pincode="
-				+ pincode + ", managerid=" + managerid + ", managerName=" + managerName + "]";
+				+ pincode + ", managerid=" + managerid + ", managerName=" + managerName + ", newDepartment="
+				+ newDepartment + "]";
 	}
 
 }
