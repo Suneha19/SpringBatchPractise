@@ -3,8 +3,6 @@ package com.qiwkreport.qiwk.etl.domain;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
@@ -14,8 +12,13 @@ import javax.persistence.Table;
 @Table(name = "NEWTEACHER")
 public class NewTeacher {
 
+	/**
+	 * Don't include any id genrator type here
+	 * when developing actual FR/NC job  use database sequence generator or any other genrator based on 
+	 * business decision. 
+	 */
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	//@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
 	@Column(name = "TEACHERNAME")
@@ -26,7 +29,7 @@ public class NewTeacher {
 
 	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "STUDENTID")
-	private OldStudent oldStudent;
+	private NewStudent newStudent;
 
 	@Column(name = "TEACHEREDUCATION")
 	private String teacherEducation;
@@ -50,14 +53,14 @@ public class NewTeacher {
 		super();
 	}
 
-	public NewTeacher(long id, String teacherName, String teacherAge, OldStudent oldStudent, String teacherEducation,
+	public NewTeacher(long id, String teacherName, String teacherAge, NewStudent newStudent, String teacherEducation,
 			String teacherSalary, String teacherPhone, String teacherAddress1, String teacherAddress2,
 			String teacherAddress3) {
 		super();
 		this.id = id;
 		this.teacherName = teacherName;
 		this.teacherAge = teacherAge;
-		this.oldStudent = oldStudent;
+		this.newStudent = newStudent;
 		this.teacherEducation = teacherEducation;
 		this.teacherSalary = teacherSalary;
 		this.teacherPhone = teacherPhone;
@@ -90,12 +93,12 @@ public class NewTeacher {
 		this.teacherAge = teacherAge;
 	}
 
-	public OldStudent getOldStudent() {
-		return oldStudent;
+	public NewStudent getNewStudent() {
+		return newStudent;
 	}
 
-	public void setOldStudent(OldStudent oldStudent) {
-		this.oldStudent = oldStudent;
+	public void setNewStudent(NewStudent newStudent) {
+		this.newStudent = newStudent;
 	}
 
 	public String getTeacherEducation() {
@@ -148,8 +151,8 @@ public class NewTeacher {
 
 	@Override
 	public String toString() {
-		return "OldTeacher [id=" + id + ", teacherName=" + teacherName + ", teacherAge=" + teacherAge + ", oldStudent="
-				+ oldStudent + ", teacherEducation=" + teacherEducation + ", teacherSalary=" + teacherSalary
+		return "NewTeacher [id=" + id + ", teacherName=" + teacherName + ", teacherAge=" + teacherAge + ", newStudent="
+				+ newStudent + ", teacherEducation=" + teacherEducation + ", teacherSalary=" + teacherSalary
 				+ ", teacherPhone=" + teacherPhone + ", teacherAddress1=" + teacherAddress1 + ", teacherAddress2="
 				+ teacherAddress2 + ", teacherAddress3=" + teacherAddress3 + "]";
 	}

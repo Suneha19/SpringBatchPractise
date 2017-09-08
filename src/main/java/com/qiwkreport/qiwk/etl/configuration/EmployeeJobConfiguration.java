@@ -35,7 +35,7 @@ import com.qiwkreport.qiwk.etl.common.QiwkJobsConfiguration;
 import com.qiwkreport.qiwk.etl.domain.Employee;
 import com.qiwkreport.qiwk.etl.domain.NewEmployee;
 import com.qiwkreport.qiwk.etl.processor.EmployeeProcessor;
-import com.qiwkreport.qiwk.etl.writer.JpaEmployeeItemWriter;
+import com.qiwkreport.qiwk.etl.writer.JpaBasedItemWriter;
 
 /**
  * This is configurations class for EmployeeJoB, this class is responsible for moving records from
@@ -116,7 +116,7 @@ public class EmployeeJobConfiguration{
 	
 	@Bean
 	public ItemWriter<NewEmployee> jpaEmployeeItemWriter() {
-		return new JpaEmployeeItemWriter();
+		return new JpaBasedItemWriter<NewEmployee>();
 	}
 	
 	@StepScope
@@ -155,7 +155,6 @@ public class EmployeeJobConfiguration{
 		JpaPagingItemReader<Employee> reader = new JpaPagingItemReader<Employee>();
 		reader.setPageSize(configuration.getChunkSize());
 		reader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
-		//reader.setQueryString("FROM Employee e e.id>=" + fromId + " and e.id <= " + toId +" order by e.id ASC");
 		reader.setQueryString("FROM Employee e where e.id>=" + fromId + " and e.id <= " + toId +" order by e.id ASC");
 		reader.setSaveState(false);
 		reader.afterPropertiesSet();

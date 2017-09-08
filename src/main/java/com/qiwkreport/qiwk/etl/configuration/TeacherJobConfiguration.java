@@ -22,11 +22,12 @@ import com.qiwkreport.qiwk.etl.common.QiwkJobsConfiguration;
 import com.qiwkreport.qiwk.etl.domain.NewTeacher;
 import com.qiwkreport.qiwk.etl.domain.OldTeacher;
 import com.qiwkreport.qiwk.etl.processor.TeacherProcessor;
-import com.qiwkreport.qiwk.etl.writer.JpaTeacherItemWriter;
+import com.qiwkreport.qiwk.etl.writer.JpaBasedItemWriter;
 
 /**
- * This is configurations class for UserJob, this class is responsible for moving records from
- * OldUser table to NewUser table
+ * This is configurations class for Teacher Job, this class is responsible for moving records from
+ * OldTeacher table to NewTable table. Also it is onetoone joined with Employee table. It should also
+ * move the record from OldEmployee to NewEmployee
  * 
  * @author Abhilash
  *
@@ -39,7 +40,7 @@ public class TeacherJobConfiguration {
 	@Autowired
 	private QiwkJobsConfiguration configuration;
 	
-	//@Bean
+	@Bean
 	public Job teacherJob() throws Exception {
 		return configuration.getJobBuilderFactory()
 				.get("TeacherJob")
@@ -110,7 +111,7 @@ public class TeacherJobConfiguration {
 	
 	@Bean
 	public ItemWriter<NewTeacher> jpaTeacherItemWriter() {
-		return new JpaTeacherItemWriter();
+		return new JpaBasedItemWriter<NewTeacher>();
 	}
 	
 	

@@ -53,6 +53,14 @@ public class DepartmentJobConfiguration{
 	@Autowired
 	private QiwkJobsConfiguration configuration;
 	
+	/**
+	 * This job needed any more as Employee table is linked to department table. when employee table record will 
+	 * move department table record itself will move.
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	
 	//@Bean
 	public Job departmentJob() throws Exception {
 		return configuration.getJobBuilderFactory()
