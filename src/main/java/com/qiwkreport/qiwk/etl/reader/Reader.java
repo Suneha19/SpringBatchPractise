@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 
 import com.qiwkreport.qiwk.etl.common.QiwkJobsConfiguration;
 import com.qiwkreport.qiwk.etl.domain.Olduser;
@@ -40,14 +41,14 @@ public class Reader{
 		reader.setDataSource(configuration.getDataSource());
 		// this should be equal to chunk size for the performance reasons.
 		reader.setFetchSize(configuration.getChunkSize());
-		reader.setRowMapper((resultSet, i) -> {
+	/*	reader.setRowMapper((resultSet, i) -> {
 			return new Olduser(
 					resultSet.getInt("id"), 
 					resultSet.getString("username"), 
 					resultSet.getString("password"),
 					resultSet.getInt("age"));
-		});
-
+		});*/
+		reader.setRowMapper(new BeanPropertyRowMapper<>(Olduser.class));
 		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
 		provider.setSelectClause("id, username, password,age");
 		provider.setFromClause("from OLDUSER");

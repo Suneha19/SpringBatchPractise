@@ -14,7 +14,13 @@ public class UserProcessor implements ItemProcessor<Olduser, NewUser> {
 				user.getId(), 
 				user.getUsername().toUpperCase(), 
 				user.getPassword().toUpperCase(),
-				user.getAge());
+				user.getAge(),
+				user.getEmailId().toUpperCase(),
+				user.getFirstName().toUpperCase(),
+				user.getLastName().toUpperCase(),
+				user.getMobileNumber().toUpperCase(),
+				user.getSalary(),
+				user.isAbove18());
 
 	}
 

@@ -2,7 +2,9 @@ package com.qiwkreport.qiwk.etl.processor;
 
 import org.springframework.batch.item.ItemProcessor;
 
+import com.qiwkreport.qiwk.etl.domain.Department;
 import com.qiwkreport.qiwk.etl.domain.Employee;
+import com.qiwkreport.qiwk.etl.domain.NewDepartment;
 import com.qiwkreport.qiwk.etl.domain.NewEmployee;
 
 public class EmployeeProcessor implements ItemProcessor<Employee, NewEmployee> {
@@ -75,8 +77,33 @@ public class EmployeeProcessor implements ItemProcessor<Employee, NewEmployee> {
 		} else {
 			newEmployee.setManagerName(employee.getManagerName());
 		}
-
+		
+		newEmployee.setNewDepartment(getNewDepartment(employee.getDepartment()));
+		newEmployee.setFatherName(employee.getFatherName());
+		newEmployee.setMotherName(employee.getMotherName());
+		newEmployee.setEmployeeId(employee.getEmployeeId());
+		newEmployee.setOfficeNumber(employee.getOfficeNumber());
+		newEmployee.setHomeNumber(employee.getHomeNumber());
+		newEmployee.setPrimarySkill(employee.getPrimarySkill());
+		newEmployee.setSecondarySkill(employee.getSecondarySkill());
+		newEmployee.setYearOfExperince(employee.getYearOfExperince());
+		newEmployee.setBloodGroup(employee.getBloodGroup());
+		newEmployee.setMobileNumber(employee.getMobileNumber());
+		
 		return newEmployee;
+	}
+	private NewDepartment getNewDepartment(Department department) {
+	
+		return new NewDepartment(department.getDepartmentId(),
+				department.getDepartmentName(),
+				department.getDepartmentLocation(),
+				department.getDepartmentWork(),
+				department.getDepartmentManager(),
+				department.getDepartmentEmployeeCount(),
+				department.getDepartmentAverageSalary(),
+				department.getDepartmentHead(),
+				department.getDepartmentResponsibility1(),
+				department.getDepartmentResponsibility2());
 	}
 
 }

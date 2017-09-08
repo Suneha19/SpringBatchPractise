@@ -53,7 +53,7 @@ public class DepartmentJobConfiguration{
 	@Autowired
 	private QiwkJobsConfiguration configuration;
 	
-	@Bean
+	//@Bean
 	public Job departmentJob() throws Exception {
 		return configuration.getJobBuilderFactory()
 				.get("DepartmentJob")
@@ -155,7 +155,6 @@ public class DepartmentJobConfiguration{
 		JpaPagingItemReader<Department> reader = new JpaPagingItemReader<Department>();
 		reader.setPageSize(configuration.getChunkSize());
 		reader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
-		//reader.setQueryString("FROM Department d d.id>=" + fromId + " and d.id <= " + toId +" order by d.id ASC");
 		reader.setQueryString("FROM Department o where o.id>=" + fromId + " and o.id <= " + toId +" order by o.id ASC");
 		reader.setSaveState(false);
 		reader.afterPropertiesSet();
