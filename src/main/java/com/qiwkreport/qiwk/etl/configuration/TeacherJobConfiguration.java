@@ -45,7 +45,7 @@ public class TeacherJobConfiguration {
 		return configuration.getJobBuilderFactory()
 				.get("TeacherJob")
 				.incrementer(new RunIdIncrementer())
-				.start(teacherMasterStep())
+				.start(teacherSlaveStep())
 				.build();
 	}
 	
@@ -62,7 +62,7 @@ public class TeacherJobConfiguration {
 	public Step teacherSlaveStep() throws Exception {
 		return configuration.getStepBuilderFactory().get("teacherSlaveStep")
 				.<OldTeacher, NewTeacher>chunk(configuration.getChunkSize())
-				.reader(jpaTeacherItemReader(null, null, null))
+				.reader(jpaTeacherItemReaderWithoutPartitioning())
 			    .processor(teacherProcessor())
 				.writer(jpaTeacherItemWriter())
 				.build();
@@ -104,6 +104,19 @@ public class TeacherJobConfiguration {
 		jpaReader.setPageSize(configuration.getChunkSize());
 		jpaReader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
 		jpaReader.setQueryString("FROM OldTeacher o where o.id>=" + fromId + " and o.id <= " + toId +" order by o.id ASC");
+		jpaReader.setSaveState(false);
+		jpaReader.afterPropertiesSet();
+		return jpaReader;
+	}
+	
+	@Bean
+	@StepScope
+	public JpaPagingItemReader<OldTeacher> jpaTeacherItemReaderWithoutPartitioning() throws Exception {
+		
+		JpaPagingItemReader<OldTeacher> jpaReader=new JpaPagingItemReader<>();
+		jpaReader.setPageSize(configuration.getChunkSize());
+		jpaReader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
+		jpaReader.setQueryString("FROM OldTeacher");
 		jpaReader.setSaveState(false);
 		jpaReader.afterPropertiesSet();
 		return jpaReader;

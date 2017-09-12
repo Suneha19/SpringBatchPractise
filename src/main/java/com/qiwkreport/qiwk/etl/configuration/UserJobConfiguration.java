@@ -44,7 +44,7 @@ public class UserJobConfiguration {
 		return configuration.getJobBuilderFactory()
 				.get("UserJob")
 				.incrementer(new RunIdIncrementer())
-				.start(userMasterStep())
+				.start(userSlaveStep())
 				.build();
 	}
 	
@@ -61,7 +61,7 @@ public class UserJobConfiguration {
 	public Step userSlaveStep() throws Exception {
 		return configuration.getStepBuilderFactory().get("userSlaveStep")
 				.<Olduser, NewUser>chunk(configuration.getChunkSize())
-				.reader(jpaUserItemReader(null, null, null))
+				.reader(jpaUserItemReaderWithoutPartitioning())
 			    .processor(userProcessor())
 				.writer(jpaUserItemWriter())
 				.build();
@@ -103,6 +103,19 @@ public class UserJobConfiguration {
 		jpaReader.setPageSize(configuration.getChunkSize());
 		jpaReader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
 		jpaReader.setQueryString("FROM Olduser o where o.id>=" + fromId + " and o.id <= " + toId +" order by o.id ASC");
+		jpaReader.setSaveState(false);
+		jpaReader.afterPropertiesSet();
+		return jpaReader;
+	}
+	
+	@Bean
+	@StepScope
+	public JpaPagingItemReader<Olduser> jpaUserItemReaderWithoutPartitioning() throws Exception {
+		
+		JpaPagingItemReader<Olduser> jpaReader=new JpaPagingItemReader<>();
+		jpaReader.setPageSize(configuration.getChunkSize());
+		jpaReader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
+		jpaReader.setQueryString("FROM Olduser ");
 		jpaReader.setSaveState(false);
 		jpaReader.afterPropertiesSet();
 		return jpaReader;
