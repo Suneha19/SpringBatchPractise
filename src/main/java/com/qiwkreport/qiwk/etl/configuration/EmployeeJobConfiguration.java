@@ -58,7 +58,7 @@ public class EmployeeJobConfiguration{
 		return configuration.getJobBuilderFactory()
 				.get("EmployeeJob")
 				.incrementer(new RunIdIncrementer())
-				.start(employeeSlaveStep())
+				.start(employeeMasterStep())
 				.build();
 	}
 
@@ -76,7 +76,7 @@ public class EmployeeJobConfiguration{
 		return configuration.getStepBuilderFactory()
 				.get("employeeSlaveStep")
 				.<Employee, NewEmployee>chunk(configuration.getChunkSize())
-				.reader(jpaEmployeeReaderWithoutPartitioning())
+				.reader(jpaEmployeeReader(null, null, null))
 				.processor(employeeProcessor())
 				.writer(jpaEmployeeItemWriter())
 				.build();

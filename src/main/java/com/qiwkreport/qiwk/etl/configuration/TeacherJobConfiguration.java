@@ -45,7 +45,7 @@ public class TeacherJobConfiguration {
 		return configuration.getJobBuilderFactory()
 				.get("TeacherJob")
 				.incrementer(new RunIdIncrementer())
-				.start(teacherSlaveStep())
+				.start(teacherMasterStep())
 				.build();
 	}
 	
@@ -62,7 +62,7 @@ public class TeacherJobConfiguration {
 	public Step teacherSlaveStep() throws Exception {
 		return configuration.getStepBuilderFactory().get("teacherSlaveStep")
 				.<OldTeacher, NewTeacher>chunk(configuration.getChunkSize())
-				.reader(jpaTeacherItemReaderWithoutPartitioning())
+				.reader(jpaTeacherItemReader(null,null,null))
 			    .processor(teacherProcessor())
 				.writer(jpaTeacherItemWriter())
 				.build();

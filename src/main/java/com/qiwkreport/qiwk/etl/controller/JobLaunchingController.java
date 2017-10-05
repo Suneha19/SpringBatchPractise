@@ -1,6 +1,5 @@
 package com.qiwkreport.qiwk.etl.controller;
 
-
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -16,22 +15,28 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.qiwkreport.qiwk.etl.SaveDataInDB;
+
 @RestController
 public class JobLaunchingController {
 
 	@Autowired
 	private JobOperator jobOperator;
 
+	@Autowired
+	private SaveDataInDB saveData;
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(JobLaunchingController.class);
 
 	@RequestMapping(value = "qiwk/etl/", method = RequestMethod.GET)
 	@ResponseStatus(code = HttpStatus.ACCEPTED)
-	public String launch(){
+	public String launch() {
+
 		LOGGER.info("FR Job Started" + System.currentTimeMillis());
 		Set<String> jobNames = jobOperator.getJobNames();
 		jobNames.parallelStream().forEach(job -> {
 			try {
-				LOGGER.info(job+" Started");
+				LOGGER.info(job + " Started");
 				jobOperator.start(job, null);
 			} catch (NoSuchJobException | JobInstanceAlreadyExistsException | JobParametersInvalidException e) {
 				LOGGER.error("Exception occured while executing the job ");
@@ -40,6 +45,16 @@ public class JobLaunchingController {
 		});
 		LOGGER.info("FR Job Finished" + System.currentTimeMillis());
 		return "Job Completed Sucessfully !";
+	}
+
+	@RequestMapping(value = "qiwk/save/", method = RequestMethod.GET)
+	@ResponseStatus(code = HttpStatus.ACCEPTED)
+	public String saveData() {
+		LOGGER.info("Saving the Data");
+		//saveData.saveEmployeeData();
+		saveData.saveTeacherData();
+		//saveData.saveStudent();
+		return "Data saved successfully !";
 	}
 
 }

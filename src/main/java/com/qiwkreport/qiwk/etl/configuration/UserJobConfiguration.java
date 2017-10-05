@@ -44,7 +44,7 @@ public class UserJobConfiguration {
 		return configuration.getJobBuilderFactory()
 				.get("UserJob")
 				.incrementer(new RunIdIncrementer())
-				.start(userSlaveStep())
+				.start(userMasterStep())
 				.build();
 	}
 	
@@ -61,7 +61,7 @@ public class UserJobConfiguration {
 	public Step userSlaveStep() throws Exception {
 		return configuration.getStepBuilderFactory().get("userSlaveStep")
 				.<Olduser, NewUser>chunk(configuration.getChunkSize())
-				.reader(jpaUserItemReaderWithoutPartitioning())
+				.reader(jpaUserItemReader(null, null, null))
 			    .processor(userProcessor())
 				.writer(jpaUserItemWriter())
 				.build();
