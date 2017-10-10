@@ -4,14 +4,18 @@ package com.qiwkreport.qiwk.etl.common;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Properties;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceContext;
+
 import org.apache.tomcat.jdbc.pool.DataSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
 import wt.dataservice.DSPropertiesServer;
 import wt.dataservice.DataServiceFactory;
@@ -19,8 +23,14 @@ import wt.dataservice.Datastore;
 import wt.dataservice.Oracle;
 import wt.util.WTProperties;
 
-
-public class FlexDBConnectionConfiguration {
+@Configuration
+public class FlexDBConfiguration {
+	
+	@Autowired
+	private DataSource dataSource;
+	
+	@PersistenceContext
+    private EntityManager entityManager;
 	
 	public static String DATABASE;
 	
@@ -43,9 +53,9 @@ public class FlexDBConnectionConfiguration {
         }
     }*/
 
+    @Bean
 	public DataSource flexDataSource() {
 
-		DataSource dataSource = new DataSource();
 		Properties properties = new Properties();
 		
 		Datastore datastore = DataServiceFactory.getDefault().getDatastore();
@@ -92,6 +102,35 @@ public class FlexDBConnectionConfiguration {
 		}
 		return dataSource;
 
+	}
+
+    @Bean
+    public EntityManagerFactory getEntityManagerFactory(){
+    	LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
+    	  factoryBean.setDataSource(this.flexDataSource());
+    	 // factoryBean.setPersistenceUnitName("persistenceUnitName");
+    	  factoryBean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
+    	  factoryBean.afterPropertiesSet();
+
+    	  EntityManagerFactory factory = factoryBean.getNativeEntityManagerFactory();
+    	  return factory;
+    }
+    
+	public DataSource getDataSource() {
+		return dataSource;
+	}
+
+	public void setDataSource(DataSource dataSource) {
+		this.dataSource = dataSource;
+	}
+
+	public EntityManager getEntityManager() {
+		return entityManager;
+	}
+
+	public void setEntityManager(EntityManager entityManager) {
+		this.entityManager = entityManager;
+		
 	}
     
 /*    public FlexDBConnectionConfiguration() {

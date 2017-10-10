@@ -10,7 +10,10 @@ public class ColorProcessor implements ItemProcessor<LCSColor, QiwkColor> {
 
 	@Override
 	public QiwkColor process(LCSColor lcsColor) {
+		QiwkColor color=new QiwkColor();
+		//lcsColor.
 		
+		return color;
 	}
 
 }

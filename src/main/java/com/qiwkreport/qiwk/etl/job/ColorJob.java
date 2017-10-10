@@ -32,12 +32,10 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import com.lcs.wc.color.LCSColor;
 import com.qiwkreport.qiwk.etl.common.BatchJobConfiguration;
 import com.qiwkreport.qiwk.etl.common.ColumnRangePartitioner;
+import com.qiwkreport.qiwk.etl.common.FlexDBConfiguration;
 import com.qiwkreport.qiwk.etl.common.QiwkJobsConfiguration;
-import com.qiwkreport.qiwk.etl.domain.Department;
-import com.qiwkreport.qiwk.etl.domain.NewDepartment;
 import com.qiwkreport.qiwk.etl.domain.QiwkColor;
 import com.qiwkreport.qiwk.etl.processor.ColorProcessor;
-import com.qiwkreport.qiwk.etl.processor.DepartmentProcessor;
 import com.qiwkreport.qiwk.etl.writer.JpaDepartmentItemWriter;
 
 /**
@@ -55,6 +53,9 @@ public class ColorJob{
 	
 	@Autowired
 	private QiwkJobsConfiguration configuration;
+	
+	@Autowired
+	private FlexDBConfiguration flexDBConfiguration;
 	
 	
 	@Bean
@@ -101,7 +102,7 @@ public class ColorJob{
 	public ColumnRangePartitioner columnRangePartitioner() {
 		ColumnRangePartitioner partitioner = new ColumnRangePartitioner();
 		partitioner.setColumn("IDA2A2");
-		partitioner.setDataSource(configuration.getDataSource());
+		partitioner.setDataSource(flexDBConfiguration.flexDataSource());
 		partitioner.setTable("LCSCOLOR");
 		return partitioner;
 	}
@@ -158,7 +159,8 @@ public class ColorJob{
 
 		JpaPagingItemReader<LCSColor> reader = new JpaPagingItemReader<LCSColor>();
 		reader.setPageSize(configuration.getChunkSize());
-		reader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
+		reader.setEntityManagerFactory(flexDBConfiguration.getEntityManagerFactory());
+		//reader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
 		reader.setQueryString(
 				"FROM LCSColor o where o.IDA2A2>=" + fromId + " and o.IDA2A2 <= " + toId + " order by o.id ASC");
 		reader.setSaveState(false);
