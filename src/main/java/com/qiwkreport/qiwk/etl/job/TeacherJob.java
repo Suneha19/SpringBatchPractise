@@ -1,4 +1,4 @@
-package com.qiwkreport.qiwk.etl.configuration;
+package com.qiwkreport.qiwk.etl.job;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -19,14 +19,15 @@ import org.springframework.context.annotation.Import;
 import com.qiwkreport.qiwk.etl.common.BatchJobConfiguration;
 import com.qiwkreport.qiwk.etl.common.ColumnRangePartitioner;
 import com.qiwkreport.qiwk.etl.common.QiwkJobsConfiguration;
-import com.qiwkreport.qiwk.etl.domain.NewUser;
-import com.qiwkreport.qiwk.etl.domain.Olduser;
-import com.qiwkreport.qiwk.etl.processor.UserProcessor;
+import com.qiwkreport.qiwk.etl.domain.NewTeacher;
+import com.qiwkreport.qiwk.etl.domain.OldTeacher;
+import com.qiwkreport.qiwk.etl.processor.TeacherProcessor;
 import com.qiwkreport.qiwk.etl.writer.JpaBasedItemWriter;
 
 /**
- * This is configurations class for UserJob, this class is responsible for moving records from
- * OldUser table to NewUser table
+ * This is configurations class for Teacher Job, this class is responsible for moving records from
+ * OldTeacher table to NewTable table. Also it is onetoone joined with Employee table. It should also
+ * move the record from OldEmployee to NewEmployee
  * 
  * @author Abhilash
  *
@@ -34,54 +35,54 @@ import com.qiwkreport.qiwk.etl.writer.JpaBasedItemWriter;
 @Configuration
 @EnableBatchProcessing
 @Import(BatchJobConfiguration.class)
-public class UserJobConfiguration {
+public class TeacherJob {
 	
 	@Autowired
 	private QiwkJobsConfiguration configuration;
 	
 	@Bean
-	public Job userJob() throws Exception {
+	public Job teacherJob() throws Exception {
 		return configuration.getJobBuilderFactory()
-				.get("UserJob")
+				.get("TeacherJob")
 				.incrementer(new RunIdIncrementer())
-				.start(userMasterStep())
+				.start(teacherMasterStep())
 				.build();
 	}
 	
 	@Bean
-	public Step userMasterStep() throws Exception {
+	public Step teacherMasterStep() throws Exception {
 		return   configuration.getStepBuilderFactory()
-				.get("userMasterStep")
-				.partitioner(userSlaveStep().getName(), userPartitioner())
-				.partitionHandler(userMasterSlaveHandler())
+				.get("teacherMasterStep")
+				.partitioner(teacherSlaveStep().getName(), teacherPartitioner())
+				.partitionHandler(teacherMasterSlaveHandler())
 	            .build();
 	}
 	
 	@Bean
-	public Step userSlaveStep() throws Exception {
-		return configuration.getStepBuilderFactory().get("userSlaveStep")
-				.<Olduser, NewUser>chunk(configuration.getChunkSize())
-				.reader(jpaUserItemReader(null, null, null))
-			    .processor(userProcessor())
-				.writer(jpaUserItemWriter())
+	public Step teacherSlaveStep() throws Exception {
+		return configuration.getStepBuilderFactory().get("teacherSlaveStep")
+				.<OldTeacher, NewTeacher>chunk(configuration.getChunkSize())
+				.reader(jpaTeacherItemReader(null,null,null))
+			    .processor(teacherProcessor())
+				.writer(jpaTeacherItemWriter())
 				.build();
 	}
 	
 	@Bean
-	public ColumnRangePartitioner userPartitioner() {
+	public ColumnRangePartitioner teacherPartitioner() {
 		ColumnRangePartitioner partitioner = new ColumnRangePartitioner();
 		partitioner.setColumn("id");
 		partitioner.setDataSource(configuration.getDataSource());
-		partitioner.setTable("OLDUSER");
+		partitioner.setTable("OLDTEACHER");
 		return partitioner;
 	}
 
 	@Bean
-	public PartitionHandler userMasterSlaveHandler() throws Exception {
+	public PartitionHandler teacherMasterSlaveHandler() throws Exception {
 		TaskExecutorPartitionHandler handler = new TaskExecutorPartitionHandler();
 		handler.setGridSize(configuration.getGridSize());
 		handler.setTaskExecutor(configuration.getTaskExecutorConfiguration().taskExecutor());
-		handler.setStep(userSlaveStep());
+		handler.setStep(teacherSlaveStep());
 		handler.afterPropertiesSet();
 		return handler;
 	}
@@ -94,15 +95,15 @@ public class UserJobConfiguration {
 	
 	@Bean
 	@StepScope
-	public JpaPagingItemReader<Olduser> jpaUserItemReader(
+	public JpaPagingItemReader<OldTeacher> jpaTeacherItemReader(
 			@Value("#{stepExecutionContext[fromId]}") final String fromId,
 			@Value("#{stepExecutionContext[toId]}") final String toId,
 			@Value("#{stepExecutionContext[name]}") final String name) throws Exception {
 		
-		JpaPagingItemReader<Olduser> jpaReader=new JpaPagingItemReader<>();
+		JpaPagingItemReader<OldTeacher> jpaReader=new JpaPagingItemReader<>();
 		jpaReader.setPageSize(configuration.getChunkSize());
 		jpaReader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
-		jpaReader.setQueryString("FROM Olduser o where o.id>=" + fromId + " and o.id <= " + toId +" order by o.id ASC");
+		jpaReader.setQueryString("FROM OldTeacher o where o.id>=" + fromId + " and o.id <= " + toId +" order by o.id ASC");
 		jpaReader.setSaveState(false);
 		jpaReader.afterPropertiesSet();
 		return jpaReader;
@@ -110,27 +111,27 @@ public class UserJobConfiguration {
 	
 	@Bean
 	@StepScope
-	public JpaPagingItemReader<Olduser> jpaUserItemReaderWithoutPartitioning() throws Exception {
+	public JpaPagingItemReader<OldTeacher> jpaTeacherItemReaderWithoutPartitioning() throws Exception {
 		
-		JpaPagingItemReader<Olduser> jpaReader=new JpaPagingItemReader<>();
+		JpaPagingItemReader<OldTeacher> jpaReader=new JpaPagingItemReader<>();
 		jpaReader.setPageSize(configuration.getChunkSize());
 		jpaReader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
-		jpaReader.setQueryString("FROM Olduser ");
+		jpaReader.setQueryString("FROM OldTeacher");
 		jpaReader.setSaveState(false);
 		jpaReader.afterPropertiesSet();
 		return jpaReader;
 	}
 	
 	@Bean
-	public ItemWriter<NewUser> jpaUserItemWriter() {
-		return new JpaBasedItemWriter<NewUser>();
+	public ItemWriter<NewTeacher> jpaTeacherItemWriter() {
+		return new JpaBasedItemWriter<NewTeacher>();
 	}
 	
 	
 
 	@Bean
-	public ItemProcessor<Olduser, NewUser> userProcessor() {
-		return new UserProcessor();
+	public ItemProcessor<OldTeacher, NewTeacher> teacherProcessor() {
+		return new TeacherProcessor();
 	}
 	
 	/**

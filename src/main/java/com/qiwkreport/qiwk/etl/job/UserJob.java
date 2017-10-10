@@ -1,4 +1,4 @@
-package com.qiwkreport.qiwk.etl.configuration;
+package com.qiwkreport.qiwk.etl.job;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -19,14 +19,14 @@ import org.springframework.context.annotation.Import;
 import com.qiwkreport.qiwk.etl.common.BatchJobConfiguration;
 import com.qiwkreport.qiwk.etl.common.ColumnRangePartitioner;
 import com.qiwkreport.qiwk.etl.common.QiwkJobsConfiguration;
-import com.qiwkreport.qiwk.etl.domain.NewStudent;
-import com.qiwkreport.qiwk.etl.domain.OldStudent;
-import com.qiwkreport.qiwk.etl.processor.StudentProcessor;
+import com.qiwkreport.qiwk.etl.domain.NewUser;
+import com.qiwkreport.qiwk.etl.domain.Olduser;
+import com.qiwkreport.qiwk.etl.processor.UserProcessor;
 import com.qiwkreport.qiwk.etl.writer.JpaBasedItemWriter;
 
 /**
- * This is configurations class for StudentJob, this class is responsible for moving records from
- * Student table to NewUser table
+ * This is configurations class for UserJob, this class is responsible for moving records from
+ * OldUser table to NewUser table
  * 
  * @author Abhilash
  *
@@ -34,61 +34,54 @@ import com.qiwkreport.qiwk.etl.writer.JpaBasedItemWriter;
 @Configuration
 @EnableBatchProcessing
 @Import(BatchJobConfiguration.class)
-public class StudentJobConfiguration {
+public class UserJob {
 	
 	@Autowired
 	private QiwkJobsConfiguration configuration;
 	
-	/**
-	 * This job commenetd because student class is one to one joined with teacher class. As soon as teacher jobs starts ,
-	 * since  every teacher is related to every students one to one , it will move the data from old student to new 
-	 * student table
-	 * @return
-	 * @throws Exception
-	 */
-	//@Bean
-	public Job studentJob() throws Exception {
+	@Bean
+	public Job userJob() throws Exception {
 		return configuration.getJobBuilderFactory()
-				.get("StudentJob")
+				.get("UserJob")
 				.incrementer(new RunIdIncrementer())
-				.start(studentMasterStep())
+				.start(userMasterStep())
 				.build();
 	}
 	
 	@Bean
-	public Step studentMasterStep() throws Exception {
+	public Step userMasterStep() throws Exception {
 		return   configuration.getStepBuilderFactory()
-				.get("studentMasterStep")
-				.partitioner(studentSlaveStep().getName(), studentPartitioner())
-				.partitionHandler(studentMasterSlaveHandler())
+				.get("userMasterStep")
+				.partitioner(userSlaveStep().getName(), userPartitioner())
+				.partitionHandler(userMasterSlaveHandler())
 	            .build();
 	}
 	
 	@Bean
-	public Step studentSlaveStep() throws Exception {
-		return configuration.getStepBuilderFactory().get("studentSlaveStep")
-				.<OldStudent, NewStudent>chunk(configuration.getChunkSize())
-				.reader(jpaStudentItemReader(null, null, null))
-			    .processor(studentProcessor())
-				.writer(jpaStudentItemWriter())
+	public Step userSlaveStep() throws Exception {
+		return configuration.getStepBuilderFactory().get("userSlaveStep")
+				.<Olduser, NewUser>chunk(configuration.getChunkSize())
+				.reader(jpaUserItemReader(null, null, null))
+			    .processor(userProcessor())
+				.writer(jpaUserItemWriter())
 				.build();
 	}
 	
 	@Bean
-	public ColumnRangePartitioner studentPartitioner() {
+	public ColumnRangePartitioner userPartitioner() {
 		ColumnRangePartitioner partitioner = new ColumnRangePartitioner();
 		partitioner.setColumn("id");
 		partitioner.setDataSource(configuration.getDataSource());
-		partitioner.setTable("OLDSTUDENT");
+		partitioner.setTable("OLDUSER");
 		return partitioner;
 	}
 
 	@Bean
-	public PartitionHandler studentMasterSlaveHandler() throws Exception {
+	public PartitionHandler userMasterSlaveHandler() throws Exception {
 		TaskExecutorPartitionHandler handler = new TaskExecutorPartitionHandler();
 		handler.setGridSize(configuration.getGridSize());
 		handler.setTaskExecutor(configuration.getTaskExecutorConfiguration().taskExecutor());
-		handler.setStep(studentSlaveStep());
+		handler.setStep(userSlaveStep());
 		handler.afterPropertiesSet();
 		return handler;
 	}
@@ -101,28 +94,43 @@ public class StudentJobConfiguration {
 	
 	@Bean
 	@StepScope
-	public JpaPagingItemReader<OldStudent> jpaStudentItemReader(
+	public JpaPagingItemReader<Olduser> jpaUserItemReader(
 			@Value("#{stepExecutionContext[fromId]}") final String fromId,
 			@Value("#{stepExecutionContext[toId]}") final String toId,
 			@Value("#{stepExecutionContext[name]}") final String name) throws Exception {
 		
-		JpaPagingItemReader<OldStudent> jpaReader=new JpaPagingItemReader<>();
+		JpaPagingItemReader<Olduser> jpaReader=new JpaPagingItemReader<>();
 		jpaReader.setPageSize(configuration.getChunkSize());
 		jpaReader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
-		jpaReader.setQueryString("FROM OldStudent o where o.id>=" + fromId + " and o.id <= " + toId +" order by o.id ASC");
+		jpaReader.setQueryString("FROM Olduser o where o.id>=" + fromId + " and o.id <= " + toId +" order by o.id ASC");
 		jpaReader.setSaveState(false);
 		jpaReader.afterPropertiesSet();
 		return jpaReader;
 	}
 	
 	@Bean
-	public ItemWriter<NewStudent> jpaStudentItemWriter() {
-		return new JpaBasedItemWriter<NewStudent>();
+	@StepScope
+	public JpaPagingItemReader<Olduser> jpaUserItemReaderWithoutPartitioning() throws Exception {
+		
+		JpaPagingItemReader<Olduser> jpaReader=new JpaPagingItemReader<>();
+		jpaReader.setPageSize(configuration.getChunkSize());
+		jpaReader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
+		jpaReader.setQueryString("FROM Olduser ");
+		jpaReader.setSaveState(false);
+		jpaReader.afterPropertiesSet();
+		return jpaReader;
 	}
+	
+	@Bean
+	public ItemWriter<NewUser> jpaUserItemWriter() {
+		return new JpaBasedItemWriter<NewUser>();
+	}
+	
+	
 
 	@Bean
-	public ItemProcessor<OldStudent, NewStudent> studentProcessor() {
-		return new StudentProcessor();
+	public ItemProcessor<Olduser, NewUser> userProcessor() {
+		return new UserProcessor();
 	}
 	
 	/**

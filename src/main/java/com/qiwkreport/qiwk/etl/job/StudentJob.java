@@ -1,4 +1,4 @@
-package com.qiwkreport.qiwk.etl.configuration;
+package com.qiwkreport.qiwk.etl.job;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -19,15 +19,14 @@ import org.springframework.context.annotation.Import;
 import com.qiwkreport.qiwk.etl.common.BatchJobConfiguration;
 import com.qiwkreport.qiwk.etl.common.ColumnRangePartitioner;
 import com.qiwkreport.qiwk.etl.common.QiwkJobsConfiguration;
-import com.qiwkreport.qiwk.etl.domain.NewTeacher;
-import com.qiwkreport.qiwk.etl.domain.OldTeacher;
-import com.qiwkreport.qiwk.etl.processor.TeacherProcessor;
+import com.qiwkreport.qiwk.etl.domain.NewStudent;
+import com.qiwkreport.qiwk.etl.domain.OldStudent;
+import com.qiwkreport.qiwk.etl.processor.StudentProcessor;
 import com.qiwkreport.qiwk.etl.writer.JpaBasedItemWriter;
 
 /**
- * This is configurations class for Teacher Job, this class is responsible for moving records from
- * OldTeacher table to NewTable table. Also it is onetoone joined with Employee table. It should also
- * move the record from OldEmployee to NewEmployee
+ * This is configurations class for StudentJob, this class is responsible for moving records from
+ * Student table to NewUser table
  * 
  * @author Abhilash
  *
@@ -35,54 +34,61 @@ import com.qiwkreport.qiwk.etl.writer.JpaBasedItemWriter;
 @Configuration
 @EnableBatchProcessing
 @Import(BatchJobConfiguration.class)
-public class TeacherJobConfiguration {
+public class StudentJob {
 	
 	@Autowired
 	private QiwkJobsConfiguration configuration;
 	
-	@Bean
-	public Job teacherJob() throws Exception {
+	/**
+	 * This job commenetd because student class is one to one joined with teacher class. As soon as teacher jobs starts ,
+	 * since  every teacher is related to every students one to one , it will move the data from old student to new 
+	 * student table
+	 * @return
+	 * @throws Exception
+	 */
+	//@Bean
+	public Job studentJob() throws Exception {
 		return configuration.getJobBuilderFactory()
-				.get("TeacherJob")
+				.get("StudentJob")
 				.incrementer(new RunIdIncrementer())
-				.start(teacherMasterStep())
+				.start(studentMasterStep())
 				.build();
 	}
 	
 	@Bean
-	public Step teacherMasterStep() throws Exception {
+	public Step studentMasterStep() throws Exception {
 		return   configuration.getStepBuilderFactory()
-				.get("teacherMasterStep")
-				.partitioner(teacherSlaveStep().getName(), teacherPartitioner())
-				.partitionHandler(teacherMasterSlaveHandler())
+				.get("studentMasterStep")
+				.partitioner(studentSlaveStep().getName(), studentPartitioner())
+				.partitionHandler(studentMasterSlaveHandler())
 	            .build();
 	}
 	
 	@Bean
-	public Step teacherSlaveStep() throws Exception {
-		return configuration.getStepBuilderFactory().get("teacherSlaveStep")
-				.<OldTeacher, NewTeacher>chunk(configuration.getChunkSize())
-				.reader(jpaTeacherItemReader(null,null,null))
-			    .processor(teacherProcessor())
-				.writer(jpaTeacherItemWriter())
+	public Step studentSlaveStep() throws Exception {
+		return configuration.getStepBuilderFactory().get("studentSlaveStep")
+				.<OldStudent, NewStudent>chunk(configuration.getChunkSize())
+				.reader(jpaStudentItemReader(null, null, null))
+			    .processor(studentProcessor())
+				.writer(jpaStudentItemWriter())
 				.build();
 	}
 	
 	@Bean
-	public ColumnRangePartitioner teacherPartitioner() {
+	public ColumnRangePartitioner studentPartitioner() {
 		ColumnRangePartitioner partitioner = new ColumnRangePartitioner();
 		partitioner.setColumn("id");
 		partitioner.setDataSource(configuration.getDataSource());
-		partitioner.setTable("OLDTEACHER");
+		partitioner.setTable("OLDSTUDENT");
 		return partitioner;
 	}
 
 	@Bean
-	public PartitionHandler teacherMasterSlaveHandler() throws Exception {
+	public PartitionHandler studentMasterSlaveHandler() throws Exception {
 		TaskExecutorPartitionHandler handler = new TaskExecutorPartitionHandler();
 		handler.setGridSize(configuration.getGridSize());
 		handler.setTaskExecutor(configuration.getTaskExecutorConfiguration().taskExecutor());
-		handler.setStep(teacherSlaveStep());
+		handler.setStep(studentSlaveStep());
 		handler.afterPropertiesSet();
 		return handler;
 	}
@@ -95,43 +101,28 @@ public class TeacherJobConfiguration {
 	
 	@Bean
 	@StepScope
-	public JpaPagingItemReader<OldTeacher> jpaTeacherItemReader(
+	public JpaPagingItemReader<OldStudent> jpaStudentItemReader(
 			@Value("#{stepExecutionContext[fromId]}") final String fromId,
 			@Value("#{stepExecutionContext[toId]}") final String toId,
 			@Value("#{stepExecutionContext[name]}") final String name) throws Exception {
 		
-		JpaPagingItemReader<OldTeacher> jpaReader=new JpaPagingItemReader<>();
+		JpaPagingItemReader<OldStudent> jpaReader=new JpaPagingItemReader<>();
 		jpaReader.setPageSize(configuration.getChunkSize());
 		jpaReader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
-		jpaReader.setQueryString("FROM OldTeacher o where o.id>=" + fromId + " and o.id <= " + toId +" order by o.id ASC");
+		jpaReader.setQueryString("FROM OldStudent o where o.id>=" + fromId + " and o.id <= " + toId +" order by o.id ASC");
 		jpaReader.setSaveState(false);
 		jpaReader.afterPropertiesSet();
 		return jpaReader;
 	}
 	
 	@Bean
-	@StepScope
-	public JpaPagingItemReader<OldTeacher> jpaTeacherItemReaderWithoutPartitioning() throws Exception {
-		
-		JpaPagingItemReader<OldTeacher> jpaReader=new JpaPagingItemReader<>();
-		jpaReader.setPageSize(configuration.getChunkSize());
-		jpaReader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
-		jpaReader.setQueryString("FROM OldTeacher");
-		jpaReader.setSaveState(false);
-		jpaReader.afterPropertiesSet();
-		return jpaReader;
+	public ItemWriter<NewStudent> jpaStudentItemWriter() {
+		return new JpaBasedItemWriter<NewStudent>();
 	}
-	
-	@Bean
-	public ItemWriter<NewTeacher> jpaTeacherItemWriter() {
-		return new JpaBasedItemWriter<NewTeacher>();
-	}
-	
-	
 
 	@Bean
-	public ItemProcessor<OldTeacher, NewTeacher> teacherProcessor() {
-		return new TeacherProcessor();
+	public ItemProcessor<OldStudent, NewStudent> studentProcessor() {
+		return new StudentProcessor();
 	}
 	
 	/**

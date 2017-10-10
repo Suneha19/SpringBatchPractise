@@ -56,7 +56,6 @@ public class QiwkJobsConfiguration {
 		return factoryBean;
 	}
 	
-	
 	@Bean
 	public JpaTransactionManager transactionManager() {
 	    return new JpaTransactionManager();

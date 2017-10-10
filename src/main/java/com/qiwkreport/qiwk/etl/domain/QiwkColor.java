@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.qiwkreport.qiwk.etl.qiwkreport.domain;
+package com.qiwkreport.qiwk.etl.domain;
 
 import java.sql.Timestamp;
 import java.util.Date;

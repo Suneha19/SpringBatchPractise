@@ -1,4 +1,4 @@
-package com.qiwkreport.qiwk.etl.configuration;
+package com.qiwkreport.qiwk.etl.job;
 
 
 import java.io.IOException;
@@ -29,17 +29,20 @@ import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.orm.jpa.JpaTransactionManager;
 
+import com.lcs.wc.color.LCSColor;
 import com.qiwkreport.qiwk.etl.common.BatchJobConfiguration;
 import com.qiwkreport.qiwk.etl.common.ColumnRangePartitioner;
 import com.qiwkreport.qiwk.etl.common.QiwkJobsConfiguration;
 import com.qiwkreport.qiwk.etl.domain.Department;
 import com.qiwkreport.qiwk.etl.domain.NewDepartment;
+import com.qiwkreport.qiwk.etl.domain.QiwkColor;
+import com.qiwkreport.qiwk.etl.processor.ColorProcessor;
 import com.qiwkreport.qiwk.etl.processor.DepartmentProcessor;
 import com.qiwkreport.qiwk.etl.writer.JpaDepartmentItemWriter;
 
 /**
- * This is configurations class for Department table, this class is responsible for moving records from
- * Department table to NewDepartment table
+ * This is configurations class for Color table, this class is responsible for moving records from
+ * Flex Color table to Qiwk Color table
  * 
  * @author Abhilash
  *
@@ -48,54 +51,47 @@ import com.qiwkreport.qiwk.etl.writer.JpaDepartmentItemWriter;
 @Configuration
 @EnableBatchProcessing
 @Import(BatchJobConfiguration.class)
-public class DepartmentJobConfiguration{
+public class ColorJob{
 	
 	@Autowired
 	private QiwkJobsConfiguration configuration;
 	
-	/**
-	 * This job needed any more as Employee table is linked to department table. when employee table record will 
-	 * move department table record itself will move.
-	 * 
-	 * @return
-	 * @throws Exception
-	 */
 	
-	//@Bean
-	public Job departmentJob() throws Exception {
+	@Bean
+	public Job colorJob() throws Exception {
 		return configuration.getJobBuilderFactory()
-				.get("DepartmentJob")
+				.get("ColorJob")
 				.incrementer(new RunIdIncrementer())
-				.start(departmentMasterStep())
+				.start(colorMasterStep())
 				.build();
 	}
 
 	@Bean
-	public Step departmentMasterStep() throws Exception {
+	public Step colorMasterStep() throws Exception {
 		return configuration.getStepBuilderFactory()
-				.get("departmentMasterStep")
-				.partitioner(departmentSlaveStep().getName(), columnRangePartitioner())
-				.partitionHandler(departmentMasterSlaveHandler())
+				.get("colorMasterStep")
+				.partitioner(colorSlaveStep().getName(), columnRangePartitioner())
+				.partitionHandler(colorMasterSlaveHandler())
 				.build();
 	}
 	
 	@Bean
-	public Step departmentSlaveStep() throws Exception {
+	public Step colorSlaveStep() throws Exception {
 		return configuration.getStepBuilderFactory()
-				.get("departmentSlaveStep")
-				.<Department, NewDepartment>chunk(configuration.getChunkSize())
-				.reader(jpaDepartmentReader(null, null, null))
-				.processor(departmentProcessor())
-				.writer(jpaDepartmentItemWriter())
+				.get("colorSlaveStep")
+				.<LCSColor, QiwkColor>chunk(configuration.getChunkSize())
+				.reader(jpaColorReader(null, null, null))
+				.processor(colorProcessor())
+				.writer(jpaColorWriter())
 				.build();
 	}
 	
 	@Bean
-	public PartitionHandler departmentMasterSlaveHandler() throws Exception {
+	public PartitionHandler colorMasterSlaveHandler() throws Exception {
 		TaskExecutorPartitionHandler handler = new TaskExecutorPartitionHandler();
 		handler.setGridSize(configuration.getGridSize());
 		handler.setTaskExecutor(taskExecutor());
-		handler.setStep(departmentSlaveStep());
+		handler.setStep(colorSlaveStep());
 		handler.afterPropertiesSet();
 		
 		return handler;
@@ -104,9 +100,9 @@ public class DepartmentJobConfiguration{
 	@Bean
 	public ColumnRangePartitioner columnRangePartitioner() {
 		ColumnRangePartitioner partitioner = new ColumnRangePartitioner();
-		partitioner.setColumn("id");
+		partitioner.setColumn("IDA2A2");
 		partitioner.setDataSource(configuration.getDataSource());
-		partitioner.setTable("DEPARTMENT");
+		partitioner.setTable("LCSCOLOR");
 		return partitioner;
 	}
 
@@ -117,20 +113,20 @@ public class DepartmentJobConfiguration{
 	}
 
 	@Bean
-	public DepartmentProcessor departmentProcessor() {
-		return new DepartmentProcessor();
+	public ColorProcessor colorProcessor() {
+		return new ColorProcessor();
 	}
 	
 	
 	@Bean
-	public ItemWriter<NewDepartment> jpaDepartmentItemWriter() {
-		return new JpaDepartmentItemWriter<NewDepartment>();
+	public ItemWriter<QiwkColor> jpaColorWriter() {
+		return new JpaDepartmentItemWriter<QiwkColor>();
 	}
 	
 	@StepScope
 	@Bean
-	public ItemWriter<NewDepartment> hibernateDepartmentItemWriter() throws IOException {
-	        HibernateItemWriter<NewDepartment> itemWriter = new HibernateItemWriter<>();
+	public ItemWriter<QiwkColor> hibernateColorItemWriter() throws IOException {
+	        HibernateItemWriter<QiwkColor> itemWriter = new HibernateItemWriter<>();
 	        itemWriter.setSessionFactory(sessionFactory().getObject());
 	        return itemWriter;
 	}
@@ -155,15 +151,16 @@ public class DepartmentJobConfiguration{
 	
 	@Bean
 	@StepScope
-	public JpaPagingItemReader<Department> jpaDepartmentReader(
+	public JpaPagingItemReader<LCSColor> jpaColorReader(
 			@Value("#{stepExecutionContext[fromId]}") final String fromId,
 			@Value("#{stepExecutionContext[toId]}") final String toId,
 			@Value("#{stepExecutionContext[name]}") final String name) throws Exception {
 
-		JpaPagingItemReader<Department> reader = new JpaPagingItemReader<Department>();
+		JpaPagingItemReader<LCSColor> reader = new JpaPagingItemReader<LCSColor>();
 		reader.setPageSize(configuration.getChunkSize());
 		reader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
-		reader.setQueryString("FROM Department o where o.id>=" + fromId + " and o.id <= " + toId +" order by o.id ASC");
+		reader.setQueryString(
+				"FROM LCSColor o where o.IDA2A2>=" + fromId + " and o.IDA2A2 <= " + toId + " order by o.id ASC");
 		reader.setSaveState(false);
 		reader.afterPropertiesSet();
 		return reader;
@@ -181,12 +178,12 @@ public class DepartmentJobConfiguration{
 	 */
 	@Bean
 	@StepScope
-	public JpaPagingItemReader<Department> jpaDepartmentReaderWithoutPartitioning() throws Exception {
+	public JpaPagingItemReader<LCSColor> jpaColorReaderWithoutPartitioning() throws Exception {
 
-		JpaPagingItemReader<Department> reader = new JpaPagingItemReader<Department>();
+		JpaPagingItemReader<LCSColor> reader = new JpaPagingItemReader<LCSColor>();
 		reader.setPageSize(configuration.getChunkSize());
 		reader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
-		reader.setQueryString("FROM Department");
+		reader.setQueryString("FROM LCSColor");
 		reader.setSaveState(false);
 		reader.afterPropertiesSet();
 		return reader;
@@ -205,11 +202,11 @@ public class DepartmentJobConfiguration{
 	
 	@Bean
 	@StepScope
-	public HibernatePagingItemReader<Department> hibernateDepartmentItemReaderWithoutPartitioning() throws Exception {
+	public HibernatePagingItemReader<LCSColor> hibernateColorItemReaderWithoutPartitioning() throws Exception {
 	    
-		HibernatePagingItemReader<Department> hibernateReader=new HibernatePagingItemReader<>();
+		HibernatePagingItemReader<LCSColor> hibernateReader=new HibernatePagingItemReader<>();
 		hibernateReader.setFetchSize(configuration.getChunkSize());
-		hibernateReader.setQueryString("FROM Department");
+		hibernateReader.setQueryString("FROM LCSColor");
 		hibernateReader.setSessionFactory(sessionFactory().getObject());
 		hibernateReader.setSaveState(false);
 		hibernateReader.afterPropertiesSet();
@@ -228,14 +225,15 @@ public class DepartmentJobConfiguration{
 	
 	@Bean
 	@StepScope
-	public HibernatePagingItemReader<Department> hibernateDepartmentItemReader(
+	public HibernatePagingItemReader<LCSColor> hibernateColorItemReader(
 			@Value("#{stepExecutionContext[fromId]}") final String fromId,
 			@Value("#{stepExecutionContext[toId]}") final String toId,
 			@Value("#{stepExecutionContext[name]}") final String name) throws Exception {
 	    
-		HibernatePagingItemReader<Department> hibernateReader=new HibernatePagingItemReader<>();
+		HibernatePagingItemReader<LCSColor> hibernateReader=new HibernatePagingItemReader<>();
 		hibernateReader.setFetchSize(configuration.getChunkSize());
-		hibernateReader.setQueryString("FROM Department o where o.id>=" + fromId + " and o.id <= " + toId +" order by o.id ASC");
+		hibernateReader.setQueryString(
+				"FROM LCSColor o where o.IDA2A2>=" + fromId + " and o.IDA2A2 <= " + toId + " order by o.id ASC");
 		hibernateReader.setSessionFactory(sessionFactory().getObject());
 		hibernateReader.setSaveState(false);
 		hibernateReader.afterPropertiesSet();
@@ -247,7 +245,7 @@ public class DepartmentJobConfiguration{
 		LocalSessionFactoryBean factoryBean = new LocalSessionFactoryBean();
 	    factoryBean.setDataSource(configuration.getDataSource());
 	   // factoryBean.setAnnotatedPackages("com.qiwkreport.qiwk.etl.domain");
-	    factoryBean.setPackagesToScan("com.qiwkreport.qiwk.etl.domain");
+	    factoryBean.setPackagesToScan("com.lcs.wc.color");
 	    factoryBean.afterPropertiesSet();
 		return factoryBean;
 	}
@@ -272,24 +270,24 @@ public class DepartmentJobConfiguration{
 	
 	@Bean
 	@StepScope
-	public JdbcPagingItemReader<Department> departmentReaderWithPartitioning(
+	public JdbcPagingItemReader<LCSColor> colorReaderWithPartitioning(
 			@Value("#{stepExecutionContext[fromId]}") final String fromId,
 			@Value("#{stepExecutionContext[toId]}") final String toId,
 			@Value("#{stepExecutionContext[name]}") final String name) throws Exception {
 
-		JdbcPagingItemReader<Department> reader = new JdbcPagingItemReader<Department>();
+		JdbcPagingItemReader<LCSColor> reader = new JdbcPagingItemReader<>();
 		reader.setDataSource(configuration.getDataSource());
 		// the fetch size should be equal to chunk size for the performance reasons.
 		reader.setFetchSize(configuration.getChunkSize());
 
-		reader.setRowMapper(new BeanPropertyRowMapper<>(Department.class));
+		reader.setRowMapper(new BeanPropertyRowMapper<>(LCSColor.class));
 		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
 		provider.setSelectClause("DEPARTMENTID, DEPARTMENTNAME ,DEPARTMENTLOCATION, DEPARTMENTWORK");
-		provider.setFromClause("from DEPARTMENT");
-		provider.setWhereClause("where id>=" + fromId + " and id <=" + toId);
+		provider.setFromClause("from LCSColor");
+		provider.setWhereClause("where IDA2A2>=" + fromId + " and IDA2A2 <=" + toId);
 
 		Map<String, Order> sortKeys = new HashMap<>(1);
-		sortKeys.put("id", Order.ASCENDING);
+		sortKeys.put("IDA2A2", Order.ASCENDING);
 		provider.setSortKeys(sortKeys);
 
 		reader.setQueryProvider(provider);
@@ -310,37 +308,24 @@ public class DepartmentJobConfiguration{
 	
 	@Bean
 	@StepScope
-	public JdbcPagingItemReader<Department> readEmployeeWithoutPartitioning() throws Exception {
+	public JdbcPagingItemReader<LCSColor> readColorWithoutPartitioning() throws Exception {
 
-		JdbcPagingItemReader<Department> reader = new JdbcPagingItemReader<Department>();
+		JdbcPagingItemReader<LCSColor> reader = new JdbcPagingItemReader<>();
 		reader.setDataSource(configuration.getDataSource());
 		// the fetch size equal to chunk size for the performance reasons. 
 		reader.setFetchSize(configuration.getChunkSize());
-		reader.setRowMapper(new BeanPropertyRowMapper<>(Department.class));
+		reader.setRowMapper(new BeanPropertyRowMapper<>(LCSColor.class));
 		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
 		provider.setSelectClause("DEPARTMENTID, DEPARTMENTNAME ,DEPARTMENTLOCATION, DEPARTMENTWORK");
-		provider.setFromClause("from Department");
+		provider.setFromClause("from LCSColor");
 
 		Map<String, Order> sortKeys = new HashMap<>(1);
-		sortKeys.put("id", Order.ASCENDING);
+		sortKeys.put("IDA2A2", Order.ASCENDING);
 		provider.setSortKeys(sortKeys);
 
 		reader.setQueryProvider(provider);
 		reader.afterPropertiesSet();
 		return reader;
-	}
- 
-	@Bean
-	public OraclePagingQueryProvider employeeQueryProvider() {
-		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
-		provider.setSelectClause(
-				"DEPARTMENTID, DEPARTMENTNAME ,DEPARTMENTLOCATION, DEPARTMENTWORK");
-		provider.setFromClause("from Department");
-		provider.setWhereClause("where id >= :fromId and id <= :toId");
-		Map<String, Order> sortKeys = new HashMap<>(1);
-		sortKeys.put("id", Order.ASCENDING);
-		provider.setSortKeys(sortKeys);
-		return provider;
 	}
 }
 
