@@ -6,16 +6,16 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceContext;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
+import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import wt.dataservice.DSPropertiesServer;
 import wt.dataservice.DataServiceFactory;
@@ -24,13 +24,8 @@ import wt.dataservice.Oracle;
 import wt.util.WTProperties;
 
 @Configuration
+@EnableTransactionManagement
 public class FlexDBConfiguration {
-	
-	@Autowired
-	private DataSource dataSource;
-	
-	@PersistenceContext
-    private EntityManager entityManager;
 	
 	public static String DATABASE;
 	
@@ -57,6 +52,7 @@ public class FlexDBConfiguration {
 	public DataSource flexDataSource() {
 
 		Properties properties = new Properties();
+		DataSource dataSource=new DataSource();
 		
 		Datastore datastore = DataServiceFactory.getDefault().getDatastore();
 		if (datastore instanceof Oracle) {
@@ -104,34 +100,38 @@ public class FlexDBConfiguration {
 
 	}
 
-    @Bean
-    public EntityManagerFactory getEntityManagerFactory(){
-    	LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
-    	  factoryBean.setDataSource(this.flexDataSource());
-    	 // factoryBean.setPersistenceUnitName("persistenceUnitName");
-    	  factoryBean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
-    	  factoryBean.afterPropertiesSet();
+    @PersistenceContext(unitName = "flexDB")
+    @Bean(name = "flexlEntityManager")
+	public LocalContainerEntityManagerFactoryBean getEntityManagerFactory() {
+		LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
+		factoryBean.setDataSource(this.flexDataSource());
+		// factoryBean.setPersistenceUnitName("persistenceUnitName");
+		factoryBean.setPackagesToScan("com.lcs.wc.color");
+		factoryBean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
+		factoryBean.afterPropertiesSet();
+		factoryBean.setJpaProperties(jpaProperties());
+		return factoryBean;
+	}
 
-    	  EntityManagerFactory factory = factoryBean.getNativeEntityManagerFactory();
-    	  return factory;
-    }
+	private Properties jpaProperties() {
+		Properties properties = new Properties();
+		properties.setProperty("hibernate.hbm2ddl.auto", "create-drop");
+		properties.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQL5Dialect");
+		return properties;
+	}
     
-	public DataSource getDataSource() {
-		return dataSource;
+	@Bean(name="flexTransactionManager")
+	JpaTransactionManager flexTransactionManager() {
+		JpaTransactionManager transactionManager = new JpaTransactionManager();
+		transactionManager.setEntityManagerFactory(this.getEntityManagerFactory().getObject());
+		return transactionManager;
 	}
-
-	public void setDataSource(DataSource dataSource) {
-		this.dataSource = dataSource;
+	
+	@Bean
+	public PersistenceExceptionTranslationPostProcessor exceptionTranslation() {
+		return new PersistenceExceptionTranslationPostProcessor();
 	}
-
-	public EntityManager getEntityManager() {
-		return entityManager;
-	}
-
-	public void setEntityManager(EntityManager entityManager) {
-		this.entityManager = entityManager;
-		
-	}
+    
     
 /*    public FlexDBConnectionConfiguration() {
     	
