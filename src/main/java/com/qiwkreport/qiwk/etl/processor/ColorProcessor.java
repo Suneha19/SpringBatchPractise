@@ -18,19 +18,19 @@ import com.lcs.wc.util.FormatHelper;
 import com.lcs.wc.util.MOAHelper;
 import com.qiwkreport.qiwk.etl.common.QiwkRMIService;
 import com.qiwkreport.qiwk.etl.common.QiwkUtil;
-import com.qiwkreport.qiwk.etl.domain.QiwkColor;
+import com.qiwkreport.qiwk.etl.domain.QiwkColor_old;
 import com.qiwkreport.qiwk.etl.flex.domain.LCSColor;
 
 import wt.util.WTException;
 
 @Component
-public class ColorProcessor implements ItemProcessor<LCSColor, QiwkColor> {
+public class ColorProcessor implements ItemProcessor<LCSColor, QiwkColor_old> {
 
 	@Autowired
 	private QiwkRMIService rmiService;
 
 	@Override
-	public QiwkColor process(LCSColor lcsColor) throws Exception {
+	public QiwkColor_old process(LCSColor lcsColor) throws Exception {
 		String scope = null;
 		String level = null;
 		HashMap hashMap = getMapOfColorFields(lcsColor);
@@ -38,8 +38,8 @@ public class ColorProcessor implements ItemProcessor<LCSColor, QiwkColor> {
 		return convertMapToQiwkColorObject(hashMap, lcsColor);
 	}
 
-	private QiwkColor convertMapToQiwkColorObject(HashMap hashMap, LCSColor lcsColor) throws Exception {
-		QiwkColor qiwkColor=new QiwkColor();
+	private QiwkColor_old convertMapToQiwkColorObject(HashMap hashMap, LCSColor lcsColor) throws Exception {
+		QiwkColor_old qiwkColor=new QiwkColor_old();
 		String colorId = (String)hashMap.get("BRANCHID");
 		
 		qiwkColor.setBRANCHID(Integer.parseInt(colorId));

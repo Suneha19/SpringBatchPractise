@@ -39,7 +39,7 @@ public class UserJob {
 	@Autowired
 	private QiwkJobsConfiguration configuration;
 	
-	@Bean
+	//@Bean
 	public Job userJob() throws Exception {
 		return configuration.getJobBuilderFactory()
 				.get("UserJob")

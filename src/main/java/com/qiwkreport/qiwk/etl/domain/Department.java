@@ -12,8 +12,8 @@ import javax.persistence.Table;
  * @author abhilash
  *
  */
-@Entity
-@Table(name = "DEPARTMENT")
+//@Entity
+//@Table(name = "DEPARTMENT")
 public class Department {
 
 	/**

@@ -9,8 +9,8 @@ import javax.persistence.Table;
  * @author abhilash
  *
  */
-@Entity
-@Table(name = "NEWDEPARTMENT")
+//@Entity
+//@Table(name = "NEWDEPARTMENT")
 public class NewDepartment {
 
 	/**

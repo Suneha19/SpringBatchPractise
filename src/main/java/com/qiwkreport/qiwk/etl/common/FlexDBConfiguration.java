@@ -4,6 +4,7 @@ package com.qiwkreport.qiwk.etl.common;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Properties;
 
 import javax.persistence.PersistenceContext;
@@ -17,6 +18,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import oracle.jdbc.pool.OracleDataSource;
 import wt.dataservice.DSPropertiesServer;
 import wt.dataservice.DataServiceFactory;
 import wt.dataservice.Datastore;
@@ -49,19 +51,19 @@ public class FlexDBConfiguration {
     }*/
 
     @Bean
-	public DataSource flexDataSource() {
+	public DataSource flexDataSource() throws SQLException {
 
 		Properties properties = new Properties();
 		DataSource dataSource=new DataSource();
 		
-		Datastore datastore = DataServiceFactory.getDefault().getDatastore();
+/*		Datastore datastore = DataServiceFactory.getDefault().getDatastore();
 		if (datastore instanceof Oracle) {
 			// System.out.println("DATASTORE:oracle");
 			DATABASE = "oracle";
 		} else {
 			// System.out.println("DATASTORE:sqlserver");
 			DATABASE = "sqlserver";
-		}
+		}*/
 	
 		try {
 			String WT_HOME = WTProperties.getLocalProperties().getProperty("wt.home");
@@ -89,8 +91,10 @@ public class FlexDBConfiguration {
 			conn = DriverManager.getConnection(db_url, db_login, db_pwd);*/
 			
 			dataSource.setUsername(db_login);
+			//dataSource.setUser(db_login);
 			dataSource.setPassword(db_pwd);
-			dataSource.setDriverClassName("oracle.jdbc.OracleDriver");
+			//dataSource.setDriverClassName("oracle.jdbc.OracleDriver");
+			//dataSource.setURL(db_url);
 			dataSource.setUrl(db_url);
 			
 		} catch (IOException e) {
@@ -99,19 +103,24 @@ public class FlexDBConfiguration {
 		return dataSource;
 
 	}
-
     @PersistenceContext(unitName = "flexDB")
     @Bean(name = "flexlEntityManager")
-	public LocalContainerEntityManagerFactoryBean getEntityManagerFactory() {
+	public LocalContainerEntityManagerFactoryBean getEntityManagerFactory() throws SQLException {
 		LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
-		factoryBean.setDataSource(this.flexDataSource());
+		try {
+			factoryBean.setDataSource(this.flexDataSource());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		// factoryBean.setPersistenceUnitName("persistenceUnitName");
 		factoryBean.setPackagesToScan("com.lcs.wc.color");
 		factoryBean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
 		factoryBean.afterPropertiesSet();
-		factoryBean.setJpaProperties(jpaProperties());
+	//	factoryBean.setJpaProperties(jpaProperties());
 		return factoryBean;
 	}
+    
+    /*
 
 	private Properties jpaProperties() {
 		Properties properties = new Properties();
@@ -121,7 +130,7 @@ public class FlexDBConfiguration {
 	}
     
 	@Bean(name="flexTransactionManager")
-	JpaTransactionManager flexTransactionManager() {
+	JpaTransactionManager flexTransactionManager() throws SQLException {
 		JpaTransactionManager transactionManager = new JpaTransactionManager();
 		transactionManager.setEntityManagerFactory(this.getEntityManagerFactory().getObject());
 		return transactionManager;
@@ -130,7 +139,7 @@ public class FlexDBConfiguration {
 	@Bean
 	public PersistenceExceptionTranslationPostProcessor exceptionTranslation() {
 		return new PersistenceExceptionTranslationPostProcessor();
-	}
+	}*/
     
     
 /*    public FlexDBConnectionConfiguration() {

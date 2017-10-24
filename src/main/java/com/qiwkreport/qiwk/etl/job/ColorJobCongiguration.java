@@ -1,6 +1,7 @@
 package com.qiwkreport.qiwk.etl.job;
 
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -12,7 +13,9 @@ import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -22,7 +25,10 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.partition.PartitionHandler;
 import org.springframework.batch.core.partition.support.TaskExecutorPartitionHandler;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.database.HibernateItemWriter;
+import org.springframework.batch.item.database.HibernatePagingItemReader;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
+import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.Order;
 import org.springframework.batch.item.database.support.OraclePagingQueryProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,13 +37,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.orm.jpa.JpaTransactionManager;
 
+import com.lcs.wc.color.LCSColor;
 import com.qiwkreport.qiwk.etl.common.BatchJobConfiguration;
 import com.qiwkreport.qiwk.etl.common.ColumnRangePartitioner;
 import com.qiwkreport.qiwk.etl.common.FlexDBConfiguration;
 import com.qiwkreport.qiwk.etl.common.QiwkJobsConfiguration;
-import com.qiwkreport.qiwk.etl.domain.QiwkColor;
+import com.qiwkreport.qiwk.etl.domain.QiwkColor_old;
 import com.qiwkreport.qiwk.etl.processor.ColorProcessor;
 import com.qiwkreport.qiwk.etl.writer.JpaBasedItemWriter;
 
@@ -52,7 +62,7 @@ import com.qiwkreport.qiwk.etl.writer.JpaBasedItemWriter;
 @Configuration
 @EnableBatchProcessing
 @Import(BatchJobConfiguration.class)
-public class ColorJob{
+public class ColorJobCongiguration{
 	
 	@Autowired
 	private QiwkJobsConfiguration configuration;
@@ -64,7 +74,7 @@ public class ColorJob{
 	 private EntityManager entityManager;
 	
 	
-	@Bean
+	//@Bean
 	public Job colorJob() throws Exception {
 		return configuration.getJobBuilderFactory()
 				.get("ColorJob")
@@ -86,7 +96,7 @@ public class ColorJob{
 	public Step colorSlaveStep() throws Exception {
 		return configuration.getStepBuilderFactory()
 				.get("colorSlaveStep")
-				.<com.qiwkreport.qiwk.etl.flex.domain.LCSColor, QiwkColor>chunk(configuration.getChunkSize())
+				.<com.qiwkreport.qiwk.etl.flex.domain.LCSColor, QiwkColor_old>chunk(configuration.getChunkSize())
 				.reader(colorReaderWithPartitioning(null, null, null))
 				.processor(colorProcessor())
 				.writer(jpaColorWriter())
@@ -105,7 +115,7 @@ public class ColorJob{
 	}
 
 	@Bean
-	public ColumnRangePartitioner columnRangePartitioner() {
+	public ColumnRangePartitioner columnRangePartitioner() throws SQLException {
 		ColumnRangePartitioner partitioner = new ColumnRangePartitioner();
 		partitioner.setColumn("IDA2A2");
 		partitioner.setDataSource(flexDBConfiguration.flexDataSource());
@@ -126,8 +136,8 @@ public class ColorJob{
 	
 	
 	@Bean
-	public ItemWriter<QiwkColor> jpaColorWriter() {
-		return new JpaBasedItemWriter<QiwkColor>();
+	public ItemWriter<QiwkColor_old> jpaColorWriter() {
+		return new JpaBasedItemWriter<QiwkColor_old>();
 	}
 	
 
@@ -278,23 +288,23 @@ public class ColorJob{
 		return columnNames;
 	}
 	
-/*	@StepScope
+	@StepScope
 	@Bean
-	public ItemWriter<QiwkColor> hibernateColorItemWriter() throws IOException {
-	        HibernateItemWriter<QiwkColor> itemWriter = new HibernateItemWriter<>();
+	public ItemWriter<QiwkColor_old> hibernateColorItemWriter() throws IOException {
+	        HibernateItemWriter<QiwkColor_old> itemWriter = new HibernateItemWriter<>();
 	        itemWriter.setSessionFactory(sessionFactory().getObject());
 	        return itemWriter;
 	}
 
-	*//**
+	/**
 	 * Below methods contains various reader for reading from DB, we have Hibernate based reader,
 	 * we have JDBC based readers with & without partitioning, & then 
 	 * we have JPA based reader.
 	 * We need to compare the performances of all 4 & use the one which suits Best.
-	 *//*
+	 */
 	
 	
-	*//**
+	/**
 	 * JPA Based reader with partitioning 
 	 * 
 	 * @param fromId
@@ -302,7 +312,7 @@ public class ColorJob{
 	 * @param name
 	 * @return
 	 * @throws Exception
-	 *//*
+	 */
 	
 	@Bean
 	@StepScope
@@ -321,8 +331,7 @@ public class ColorJob{
 		String attrib;
 		String columnName = null;
 		
-		EntityManagerFactory entityManagerFactory =
-		 flexDBConfiguration.getEntityManagerFactory().getObject();
+		EntityManagerFactory entityManagerFactory =flexDBConfiguration.getEntityManagerFactory().getObject();
 		
 		 reader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
 		Query createNativeQuery = entityManager
@@ -373,7 +382,7 @@ public class ColorJob{
 	}
 	
 
-	*//**
+	/**
 	 * JPA Based reader without partitioning 
 	 * 
 	 * @param fromId
@@ -381,7 +390,7 @@ public class ColorJob{
 	 * @param name
 	 * @return
 	 * @throws Exception
-	 *//*
+	 */
 	@Bean
 	@StepScope
 	public JpaPagingItemReader<LCSColor> jpaColorReaderWithoutPartitioning() throws Exception {
@@ -396,7 +405,7 @@ public class ColorJob{
 	}
 	
 	
-	*//**
+	/**
 	 * Hibernate based reader without partitioning
 	 * 
 	 * @param fromId
@@ -404,7 +413,7 @@ public class ColorJob{
 	 * @param name
 	 * @return
 	 * @throws Exception
-	 *//*
+	 */
 	
 	@Bean
 	@StepScope
@@ -419,7 +428,7 @@ public class ColorJob{
 		return hibernateReader;
 	}
 	
-	*//**
+	/**
 	 * Hibernate based reader with partitioning logic
 	 * 
 	 * @param fromId
@@ -427,7 +436,7 @@ public class ColorJob{
 	 * @param name
 	 * @return
 	 * @throws Exception
-	 *//*
+	 */
 	
 	@Bean
 	@StepScope
@@ -465,7 +474,7 @@ public class ColorJob{
 	
 	
 
-	*//**
+	/**
 	 * Following is JDBC based readers with no partitioning logic.
 	 * 
 	 * @param fromId
@@ -473,7 +482,7 @@ public class ColorJob{
 	 * @param name
 	 * @return
 	 * @throws Exception
-	 *//*
+	 */
 	
 	@Bean
 	@StepScope
@@ -495,6 +504,6 @@ public class ColorJob{
 		reader.setQueryProvider(provider);
 		reader.afterPropertiesSet();
 		return reader;
-	}*/
+	}
 }
 

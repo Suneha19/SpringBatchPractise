@@ -8,8 +8,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-@Entity
-@Table(name = "NEWEMPLOYEE")
+//@Entity
+//@Table(name = "NEWEMPLOYEE")
 public class NewEmployee {
 
 	/**
