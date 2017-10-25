@@ -1,8 +1,6 @@
-/**
- * 
- */
-package com.qiwkreport.qiwk.etl.domain;
 
+package com.qiwkreport.qiwk.etl.domain;
+/*
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -11,20 +9,20 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-/**
+*//**
  * @author abhilash This is Qiwk Color object
  *
- */
+ *//*
 
 @Entity
-@Table(name = "QIWKCOLOR")
-public class QiwkColor_old {
+@Table(name = "QIWKCOLOR")*/
+public class QiwkColor_old {/*
 
-	/**
+	*//**
 	 * Don't include any id genrator type here when developing actual FR/NC job
 	 * use database sequence generator or any other genrator based on business
 	 * decision.
-	 */
+	 *//*
 	@Id
 	@Column(name = "primaryKey")
 	private int primaryKey;
@@ -1935,4 +1933,4 @@ public class QiwkColor_old {
 	}
 
 	
-}
+*/}

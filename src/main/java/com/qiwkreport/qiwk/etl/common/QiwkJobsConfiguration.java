@@ -60,6 +60,8 @@ public class QiwkJobsConfiguration {
 	public JpaTransactionManager transactionManager() {
 	    return new JpaTransactionManager();
 	}
+	
+	
 
 	public EntityManager getEntityManager() {
 		return entityManager;

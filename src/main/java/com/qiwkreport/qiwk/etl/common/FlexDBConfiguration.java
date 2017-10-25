@@ -103,7 +103,7 @@ public class FlexDBConfiguration {
 		return dataSource;
 
 	}
-    @PersistenceContext(unitName = "flexDB")
+/*    @PersistenceContext(unitName = "flexDB")
     @Bean(name = "flexlEntityManager")
 	public LocalContainerEntityManagerFactoryBean getEntityManagerFactory() throws SQLException {
 		LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
@@ -118,7 +118,7 @@ public class FlexDBConfiguration {
 		factoryBean.afterPropertiesSet();
 	//	factoryBean.setJpaProperties(jpaProperties());
 		return factoryBean;
-	}
+	}*/
     
     /*
 

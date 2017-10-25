@@ -56,14 +56,23 @@ public class QiwkUtil {
 	 */
 	
 	public static Date getDateTagValue(String sTag) throws Exception {
-		Date dt = null;
+		//Date dt = null;
 
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		String TimeStr = getTagValue(sTag, null);
+		//SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	/*	String TimeStr = getTagValue(sTag, null);
 		if (TimeStr != null && (!"null".equalsIgnoreCase(TimeStr))) {
 			dt = dateFormat.parse(TimeStr);
-		}
-		return dt;
+		}*/
+		SimpleDateFormat readFormat = new SimpleDateFormat( "E MMM dd HH:mm:ss Z yyyy");
+	    SimpleDateFormat writeFormat = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss");
+	    Date date =readFormat.parse( sTag );
+
+	    Date formattedDate =null;
+	    if( date != null ) {
+	    	formattedDate=writeFormat.parse(writeFormat.format( date ));
+	    }
+	    
+		return formattedDate;
 	}
 	
 	public static Date getDateTagValue(String sTag, Element eElement) throws Exception {

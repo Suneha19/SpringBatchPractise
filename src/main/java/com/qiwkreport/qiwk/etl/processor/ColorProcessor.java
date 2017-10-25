@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,6 +20,7 @@ import com.lcs.wc.util.FormatHelper;
 import com.lcs.wc.util.MOAHelper;
 import com.qiwkreport.qiwk.etl.common.QiwkRMIService;
 import com.qiwkreport.qiwk.etl.common.QiwkUtil;
+import com.qiwkreport.qiwk.etl.controller.JobLaunchingController;
 import com.qiwkreport.qiwk.etl.domain.QiwkColor;
 import com.qiwkreport.qiwk.etl.flex.domain.LCSColor;
 
@@ -28,35 +31,39 @@ public class ColorProcessor implements ItemProcessor<LCSColor, QiwkColor> {
 
 	@Autowired
 	private QiwkRMIService rmiService;
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(ColorProcessor.class);
 
 	@Override
 	public QiwkColor process(LCSColor lcsColor) throws Exception {
 		String scope = null;
 		String level = null;
 		HashMap hashMap = getMapOfColorFields(lcsColor);
-		hashMap = rmiService.getTransformedResullts(hashMap, scope, level);
+		LOGGER.info("1---->"+hashMap);
+		//hashMap = rmiService.getTransformedResullts(hashMap, scope, level);
+		LOGGER.info("2---->"+hashMap);
 		return convertMapToQiwkColorObject(hashMap, lcsColor);
 	}
 
 	private QiwkColor convertMapToQiwkColorObject(HashMap hashMap, LCSColor lcsColor) throws Exception {
 		QiwkColor qiwkColor=new QiwkColor();
-		String colorId = (String)hashMap.get("BRANCHID");
 		
-		qiwkColor.setBRANCHID(Integer.parseInt(colorId));
+		qiwkColor.setBRANCHID((Integer)hashMap.get("BRANCHID"));
 		qiwkColor.setLOADERCREATESTAMP(QiwkUtil.getTimestampValue());
 		qiwkColor.setLOADERUPDATESTAMP(QiwkUtil.getTimestampValue());		
 		qiwkColor.setPTC_STR_11TYPEINFOLCSCOLOR((String)hashMap.get("PTC_STR_11TYPEINFOLCSCOLOR"));
+		
 		qiwkColor.setCREATESTAMPA2(QiwkUtil.getDateTagValue((String)hashMap.get("CREATESTAMPA2")));
 		qiwkColor.setUPDATESTAMPA2(QiwkUtil.getDateTagValue((String)hashMap.get("UPDATESTAMPA2")));
-		qiwkColor.setMARKEDFORDELETEA2(QiwkUtil.getIntTagValue((String)hashMap.get("MARKFORDELETEA2")));
-		qiwkColor.setUPDATECOUNTA2(QiwkUtil.getIntTagValue((String)hashMap.get("UPDATECOUNTA2")));
-		qiwkColor.setFLEXTYPEID(QiwkUtil.getIntTagValue((String)hashMap.get("FLEXTYPEID")));
-		qiwkColor.setIDA2TYPEDEFINITIONREFERENCE(QiwkUtil.getIntTagValue((String)hashMap.get("FLEXTYPEID")));
+		qiwkColor.setMARKEDFORDELETEA2((Integer)hashMap.get("MARKFORDELETEA2"));
+		qiwkColor.setUPDATECOUNTA2((Integer)hashMap.get("UPDATECOUNTA2"));
+		qiwkColor.setFLEXTYPEID((Integer)hashMap.get("FLEXTYPEID"));
+		qiwkColor.setIDA2TYPEDEFINITIONREFERENCE((Integer)hashMap.get("FLEXTYPEID"));
 		qiwkColor.setFLEXTYPEIDPATH((String)hashMap.get("FLEXTYPEIDPATH"));
 		qiwkColor.setCOLORHEXIDECIMALVALUE((String)hashMap.get("COLORHEXIDECIMALVALUE"));
 		qiwkColor.setCOLORNAME((String)hashMap.get("COLORNAME"));
 		qiwkColor.setTHUMBNAIL((String)hashMap.get("THUMBNAIL"));
-		
+		LOGGER.info("qiwkColor---->"+qiwkColor);
 		return qiwkColor;
 	
 	}
@@ -70,7 +77,7 @@ public class ColorProcessor implements ItemProcessor<LCSColor, QiwkColor> {
 		map.put("COLORNAME", lcsColor.getCOLORNAME());
 		map.put("FLEXTYPEIDPATH", lcsColor.getFLEXTYPEIDPATH());
 		map.put("IDA2TYPEDEFINITIONREFERENCE", lcsColor.getIDA2TYPEDEFINITIONREFERENCE());
-		map.put("CREATESTAMPA2", lcsColor.getCREATESTAMPA2());
+		map.put("CREATESTAMPA2", lcsColor.getCREATESTAMPA2().toString());
 		map.put("FLEXTYPEIDPATH", lcsColor.getFLEXTYPEIDPATH());
 		map.put("IDA3A2FOLDERINGINFO", lcsColor.getIDA3A2FOLDERINGINFO());
 		map.put("IDA3A2OWNERSHIP", lcsColor.getIDA3A2OWNERSHIP());
@@ -88,7 +95,7 @@ public class ColorProcessor implements ItemProcessor<LCSColor, QiwkColor> {
 		map.put("SECURITYLABELS", lcsColor.getSECURITYLABELS());
 		map.put("THUMBNAIL", lcsColor.getTHUMBNAIL());
 		map.put("UPDATECOUNTA2", lcsColor.getUPDATECOUNTA2());
-		map.put("UPDATESTAMPA2", lcsColor.getUPDATESTAMPA2());
+		map.put("UPDATESTAMPA2", lcsColor.getUPDATESTAMPA2().toString());
 
 		return map;
 	}

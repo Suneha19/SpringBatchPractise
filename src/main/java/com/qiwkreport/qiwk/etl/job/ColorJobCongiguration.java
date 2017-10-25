@@ -17,6 +17,8 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -47,6 +49,7 @@ import com.qiwkreport.qiwk.etl.common.BatchJobConfiguration;
 import com.qiwkreport.qiwk.etl.common.ColumnRangePartitioner;
 import com.qiwkreport.qiwk.etl.common.FlexDBConfiguration;
 import com.qiwkreport.qiwk.etl.common.QiwkJobsConfiguration;
+import com.qiwkreport.qiwk.etl.controller.JobLaunchingController;
 import com.qiwkreport.qiwk.etl.domain.QiwkColor;
 import com.qiwkreport.qiwk.etl.processor.ColorProcessor;
 import com.qiwkreport.qiwk.etl.writer.JpaBasedItemWriter;
@@ -72,6 +75,8 @@ public class ColorJobCongiguration{
 	
 	/* @PersistenceContext(unitName = "flexDB")
 	 private EntityManager entityManager;*/
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(ColorJobCongiguration.class);
 	
 	
 	@Bean
@@ -160,7 +165,7 @@ public class ColorJobCongiguration{
 
 		JdbcPagingItemReader<com.qiwkreport.qiwk.etl.flex.domain.LCSColor> reader = new JdbcPagingItemReader<>();
 		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
-		StringBuilder queryBuilder = new StringBuilder("select  ");
+		StringBuilder queryBuilder = new StringBuilder(" ");
 		String attrib;
 		String columnName = null;
 		List<String> colorColumns = getColorColumnNames();
@@ -225,8 +230,9 @@ public class ColorJobCongiguration{
 			@Override
 			public com.qiwkreport.qiwk.etl.flex.domain.LCSColor mapRow(ResultSet rs, int arg1) throws SQLException {
 				com.qiwkreport.qiwk.etl.flex.domain.LCSColor lcsColor=new com.qiwkreport.qiwk.etl.flex.domain.LCSColor();
-				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 				
+				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			
 				lcsColor.setIDA2A2(Integer.parseInt(rs.getString("IDA2A2")));
 				lcsColor.setCOLORHEXIDECIMALVALUE(rs.getString("COLORHEXIDECIMALVALUE"));
 				lcsColor.setCOLORNAME(rs.getString("COLORNAME"));
@@ -254,7 +260,7 @@ public class ColorJobCongiguration{
 				lcsColor.setIDA3CONTAINERREFERENCE(Integer.parseInt(rs.getString("IDA3CONTAINERREFERENCE")));
 				lcsColor.setIDA3DOMAINREF(Integer.parseInt(rs.getString("IDA3DOMAINREF")));
 				lcsColor.setIDA3TEAMID(Integer.parseInt(rs.getString("IDA3TEAMID")));
-				lcsColor.setIDA3TEAMTEMPLATEID(Integer.parseInt(rs.getString("IDA3TEAMTEMPLATEID")));
+			//	lcsColor.setIDA3TEAMTEMPLATEID(Integer.parseInt(rs.getString("IDA3TEAMTEMPLATEID")));
 				lcsColor.setMARKFORDELETEA2(Integer.parseInt(rs.getString("MARKFORDELETEA2")));
 				lcsColor.setBRANCHIDA2TYPEDEFINITIONREFE(Integer.parseInt(rs.getString("BRANCHIDA2TYPEDEFINITIONREFE")));
 				
@@ -273,7 +279,6 @@ public class ColorJobCongiguration{
 		provider.setFromClause("from LCSColor ");
 		provider.setWhereClause("where TABLE_NAME='LCSCOLOR'");
 		reader.setQueryProvider(provider);	
-		reader.afterPropertiesSet();
 		reader.setRowMapper(new RowMapper<String>() {
 
 			@Override
@@ -285,6 +290,7 @@ public class ColorJobCongiguration{
 
 			}
 		});
+//		reader.afterPropertiesSet();
 		return columnNames;
 	}
 	
@@ -314,7 +320,7 @@ public class ColorJobCongiguration{
 	 * @throws Exception
 	 */
 	
-	@Bean
+	/*@Bean
 	@StepScope
 	public JpaPagingItemReader<LCSColor> jpaColorReader(@Value("#{stepExecutionContext[fromId]}") final String fromId,
 			@Value("#{stepExecutionContext[toId]}") final String toId,
@@ -380,7 +386,7 @@ public class ColorJobCongiguration{
 		return reader;
 	}
 	
-
+*/
 	/**
 	 * JPA Based reader without partitioning 
 	 * 
@@ -490,7 +496,8 @@ public class ColorJobCongiguration{
 		
 		JdbcPagingItemReader<com.qiwkreport.qiwk.etl.flex.domain.LCSColor> reader = new JdbcPagingItemReader<>();
 		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
-		StringBuilder queryBuilder = new StringBuilder("select  ");
+		StringBuilder queryBuilder = new StringBuilder("*  ");
+		//StringBuilder queryBuilder = new StringBuilder(" ");
 		String attrib;
 		String columnName = null;
 		List<String> colorColumns = getColorColumnNames();
@@ -539,9 +546,7 @@ public class ColorJobCongiguration{
 		Map<String, Order> sortKeys = new HashMap<>(1);
 		sortKeys.put("IDA2A2", Order.ASCENDING);
 		provider.setSortKeys(sortKeys);
-
 		reader.setRowMapper(getLCSColorObject());
-
 		reader.setQueryProvider(provider);
 		reader.afterPropertiesSet();
 
