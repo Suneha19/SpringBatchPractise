@@ -47,7 +47,7 @@ import com.qiwkreport.qiwk.etl.common.BatchJobConfiguration;
 import com.qiwkreport.qiwk.etl.common.ColumnRangePartitioner;
 import com.qiwkreport.qiwk.etl.common.FlexDBConfiguration;
 import com.qiwkreport.qiwk.etl.common.QiwkJobsConfiguration;
-import com.qiwkreport.qiwk.etl.domain.QiwkColor_old;
+import com.qiwkreport.qiwk.etl.domain.QiwkColor;
 import com.qiwkreport.qiwk.etl.processor.ColorProcessor;
 import com.qiwkreport.qiwk.etl.writer.JpaBasedItemWriter;
 
@@ -70,16 +70,16 @@ public class ColorJobCongiguration{
 	@Autowired
 	private FlexDBConfiguration flexDBConfiguration;
 	
-	 @PersistenceContext(unitName = "flexDB")
-	 private EntityManager entityManager;
+	/* @PersistenceContext(unitName = "flexDB")
+	 private EntityManager entityManager;*/
 	
 	
-	//@Bean
+	@Bean
 	public Job colorJob() throws Exception {
 		return configuration.getJobBuilderFactory()
 				.get("ColorJob")
 				.incrementer(new RunIdIncrementer())
-				.start(colorMasterStep())
+				.start(colorSlaveStep())
 				.build();
 	}
 
@@ -96,8 +96,8 @@ public class ColorJobCongiguration{
 	public Step colorSlaveStep() throws Exception {
 		return configuration.getStepBuilderFactory()
 				.get("colorSlaveStep")
-				.<com.qiwkreport.qiwk.etl.flex.domain.LCSColor, QiwkColor_old>chunk(configuration.getChunkSize())
-				.reader(colorReaderWithPartitioning(null, null, null))
+				.<com.qiwkreport.qiwk.etl.flex.domain.LCSColor, QiwkColor>chunk(configuration.getChunkSize())
+				.reader(readColorWithoutPartitioning())
 				.processor(colorProcessor())
 				.writer(jpaColorWriter())
 				.build();
@@ -136,8 +136,8 @@ public class ColorJobCongiguration{
 	
 	
 	@Bean
-	public ItemWriter<QiwkColor_old> jpaColorWriter() {
-		return new JpaBasedItemWriter<QiwkColor_old>();
+	public ItemWriter<QiwkColor> jpaColorWriter() {
+		return new JpaBasedItemWriter<QiwkColor>();
 	}
 	
 
@@ -290,8 +290,8 @@ public class ColorJobCongiguration{
 	
 	@StepScope
 	@Bean
-	public ItemWriter<QiwkColor_old> hibernateColorItemWriter() throws IOException {
-	        HibernateItemWriter<QiwkColor_old> itemWriter = new HibernateItemWriter<>();
+	public ItemWriter<QiwkColor> hibernateColorItemWriter() throws IOException {
+	        HibernateItemWriter<QiwkColor> itemWriter = new HibernateItemWriter<>();
 	        itemWriter.setSessionFactory(sessionFactory().getObject());
 	        return itemWriter;
 	}
@@ -324,17 +324,16 @@ public class ColorJobCongiguration{
 	
 
 		reader.setPageSize(configuration.getChunkSize());
-		reader.setEntityManagerFactory(entityManager.getEntityManagerFactory());
-		
+		//reader.setEntityManagerFactory(entityManager.getEntityManagerFactory());
+		EntityManagerFactory entityManager = flexDBConfiguration.getEntityManagerFactory().getObject();
+		reader.setEntityManagerFactory(entityManager);
 		List<String> columns = new ArrayList<>();
 		StringBuilder queryBuilder = new StringBuilder("select  ");
 		String attrib;
 		String columnName = null;
 		
-		EntityManagerFactory entityManagerFactory =flexDBConfiguration.getEntityManagerFactory().getObject();
-		
-		 reader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
-		Query createNativeQuery = entityManager
+		reader.setEntityManagerFactory(configuration.getEntityManager().getEntityManagerFactory());
+		Query createNativeQuery = entityManager.createEntityManager()
 				.createQuery("select COLUMN_NAME from user_tab_cols where TABLE_NAME='LCSCOLOR'");
 		
 		List<String> resultList = createNativeQuery.getResultList();
@@ -486,23 +485,66 @@ public class ColorJobCongiguration{
 	
 	@Bean
 	@StepScope
-	public JdbcPagingItemReader<LCSColor> readColorWithoutPartitioning() throws Exception {
+	public JdbcPagingItemReader<com.qiwkreport.qiwk.etl.flex.domain.LCSColor> readColorWithoutPartitioning() throws Exception {
 
-		JdbcPagingItemReader<LCSColor> reader = new JdbcPagingItemReader<>();
-		reader.setDataSource(configuration.getDataSource());
-		// the fetch size equal to chunk size for the performance reasons. 
-		reader.setFetchSize(configuration.getChunkSize());
-		reader.setRowMapper(new BeanPropertyRowMapper<>(LCSColor.class));
+		
+		JdbcPagingItemReader<com.qiwkreport.qiwk.etl.flex.domain.LCSColor> reader = new JdbcPagingItemReader<>();
 		OraclePagingQueryProvider provider = new OraclePagingQueryProvider();
-		provider.setSelectClause("DEPARTMENTID, DEPARTMENTNAME ,DEPARTMENTLOCATION, DEPARTMENTWORK");
-		provider.setFromClause("from LCSColor");
+		StringBuilder queryBuilder = new StringBuilder("select  ");
+		String attrib;
+		String columnName = null;
+		List<String> colorColumns = getColorColumnNames();
+		List<String> fields=new ArrayList<>();
+		Iterator<String> columnItr = colorColumns.iterator();
+		
+		// the fetch size should be equal to chunk size for the performance reasons.
+		reader.setFetchSize(configuration.getChunkSize());
+		reader.setDataSource(flexDBConfiguration.flexDataSource());
 
+		while (columnItr.hasNext()) {
+
+			columnName = columnItr.next();
+			attrib = columnName;
+			attrib.toUpperCase();
+
+			if (columnName.startsWith("IDA2A2")) {
+				//fields.add("BRANCHID");
+				queryBuilder = queryBuilder.append("LCSColor." + columnName + " BRANCHID ");
+			}
+			if (attrib.startsWith("COLOR") || attrib.startsWith("SECURITY") || attrib.startsWith("CREATESTAMPA2")
+					|| attrib.startsWith("UPDATE") || attrib.startsWith("PTC_STR_") || attrib.startsWith("PTC_DBL_")
+					|| attrib.startsWith("PTC_LNG_") || attrib.startsWith("PTC_BLN_") || attrib.startsWith("PTC_TMS_")
+					|| attrib.startsWith("IDA2TYPEDEFINITIONREFERENCE") || attrib.startsWith("FLEX")
+					|| attrib.startsWith("THUMBNAIL")) {
+				//fields.add(attrib);
+				queryBuilder = queryBuilder.append(" LCSColor." + columnName);
+			}
+			if (attrib.contains("TYPEINFO") && (attrib.startsWith("BRANCHIDA3") || attrib.startsWith("IDA3"))) {
+				//fields.add(attrib);
+				queryBuilder = queryBuilder.append(" LCSColor." + columnName);
+			}
+			if (attrib.startsWith("MAR")) {
+				//fields.add("MARKEDFORDELETEA2");
+				queryBuilder = queryBuilder.append(" LCSColor." + columnName + " MARKEDFORDELETEA2 ");
+			}
+			if (attrib.startsWith("BRANCHIDA2TYPEDEFINITIONREFE")) {
+			//	fields.add("FLEXTYPEID");
+				queryBuilder = queryBuilder.append(" LCSColor." + columnName + " FLEXTYPEID ");
+			}
+
+		}
+		
+		provider.setSelectClause(queryBuilder.toString());
+		provider.setFromClause("from LCSCOLOR o");
 		Map<String, Order> sortKeys = new HashMap<>(1);
 		sortKeys.put("IDA2A2", Order.ASCENDING);
 		provider.setSortKeys(sortKeys);
 
+		reader.setRowMapper(getLCSColorObject());
+
 		reader.setQueryProvider(provider);
 		reader.afterPropertiesSet();
+
 		return reader;
 	}
 }
