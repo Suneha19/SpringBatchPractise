@@ -39,9 +39,7 @@ public class ColorProcessor implements ItemProcessor<LCSColor, QiwkColor> {
 		String scope = null;
 		String level = null;
 		HashMap hashMap = getMapOfColorFields(lcsColor);
-		LOGGER.info("1---->"+hashMap);
-		//hashMap = rmiService.getTransformedResullts(hashMap, scope, level);
-		LOGGER.info("2---->"+hashMap);
+		hashMap = rmiService.getTransformCollections(hashMap, scope, level);
 		return convertMapToQiwkColorObject(hashMap, lcsColor);
 	}
 

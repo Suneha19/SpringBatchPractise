@@ -4,23 +4,28 @@ import java.util.Arrays;
 import java.util.Date;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  * @author abhilash
  *
  */
-
-/*@Entity
-@Table(name = "LCSCOLOR")*/
-public class LCSColorNotUsed {
+@Entity
+@Table(name = "LCSCOLOR")
+public class LCSColorFlex {
 
 	/**
 	 * Don't include any id genrator type here when developing actual FR/NC job
 	 * use database sequence generator or any other genrator based on business
 	 * decision.
 	 */
-	/*@Id
-	@Column(name = "IDA2A2")*/
+	@Id
+	@GeneratedValue(strategy=GenerationType.AUTO)
+	@Column(name = "IDA2A2")
 	private int IDA2A2;
 
 	@Column(name = "IDA2TYPEDEFINITIONREFERENCE")
@@ -146,25 +151,25 @@ public class LCSColorNotUsed {
 	@Column(name = "STATESTATE")
 	private String STATESTATE;
 
-	@Column(name = "IDA2A2")
+	@Column(name = "CLASSNAMEKEYTEAMID")
 	private String CLASSNAMEKEYTEAMID;
 
-	@Column(name = "IDA2A2")
+	@Column(name = "CLASSNAMEA2A2")
 	private String CLASSNAMEA2A2;
 
-	@Column(name = "IDA2A2")
+	@Column(name = "THUMBNAIL")
 	private String THUMBNAIL;
 
-	@Column(name = "IDA2A2")
+	@Column(name = "CREATESTAMPA2")
 	private Date CREATESTAMPA2;
 
-	@Column(name = "IDA2A2")
+	@Column(name = "MODIFYSTAMPA2")
 	private Date MODIFYSTAMPA2;
 
-	@Column(name = "IDA2A2")
+	@Column(name = "UPDATESTAMPA2")
 	private Date UPDATESTAMPA2;
 
-	@Column(name = "IDA2A2")
+	@Column(name = "BLOB$ENTRYSETADHOCACL")
 	private byte[] BLOB$ENTRYSETADHOCACL;
 
 

@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Set;
 
+import org.springframework.stereotype.Component;
+
 import com.lcs.wc.flextype.AttributeValueList;
 import com.lcs.wc.flextype.FlexType;
 import com.lcs.wc.flextype.FlexTypeAttribute;

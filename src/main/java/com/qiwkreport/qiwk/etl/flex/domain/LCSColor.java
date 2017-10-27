@@ -32,6 +32,7 @@ public class LCSColor {
 	private String THUMBNAIL;
 	private Date CREATESTAMPA2;
 	private Date UPDATESTAMPA2;
+	
 	public int getIDA2A2() {
 		return IDA2A2;
 	}

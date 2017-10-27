@@ -15,8 +15,6 @@ public class JpaBasedItemWriter <T> implements ItemWriter<T>{
 
 	@Override
 	public void write(List<? extends T> items) throws Exception {
-		//System.out.println("entityManagerFactory---->"+entityManagerFactory.getEntityManagerFactory().getProperties());
-		//System.out.println("234234243--->"+entityManagerFactory.getEntityManagerFactory().getPersistenceUnitUtil());
 		JpaItemWriter<T> writer = new JpaItemWriter<T>();
 		writer.setEntityManagerFactory(entityManagerFactory.getEntityManagerFactory());
 		writer.write(items);
