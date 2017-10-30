@@ -15,14 +15,16 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.qiwkreport.qiwk.etl.SaveDummyDataInFlex;
+
 @RestController
 public class JobLaunchingController {
 
 	@Autowired
 	private JobOperator jobOperator;
 
-/*	@Autowired
-	private SaveDataInDB saveData;*/
+	@Autowired
+	private SaveDummyDataInFlex saveData;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JobLaunchingController.class);
 
@@ -45,14 +47,13 @@ public class JobLaunchingController {
 		return "Job Completed Sucessfully !";
 	}
 
-	/*@RequestMapping(value = "qiwk/save/", method = RequestMethod.GET)
+	@RequestMapping(value = "qiwk/save/", method = RequestMethod.GET)
 	@ResponseStatus(code = HttpStatus.ACCEPTED)
-	public String saveData() {
+	public String saveData() throws Exception {
 		LOGGER.info("Saving the Data");
-		//saveData.saveEmployeeData();
-		saveData.saveTeacherData();
-		//saveData.saveStudent();
+		System.out.println("MAX-Value"+Integer.MAX_VALUE);   
+		saveData.saveLCSColorData();
 		return "Data saved successfully !";
-	}*/
+	}
 
 }

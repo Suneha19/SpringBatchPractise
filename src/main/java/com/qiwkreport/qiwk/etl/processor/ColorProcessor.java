@@ -20,7 +20,6 @@ import com.lcs.wc.util.FormatHelper;
 import com.lcs.wc.util.MOAHelper;
 import com.qiwkreport.qiwk.etl.common.QiwkRMIService;
 import com.qiwkreport.qiwk.etl.common.QiwkUtil;
-import com.qiwkreport.qiwk.etl.controller.JobLaunchingController;
 import com.qiwkreport.qiwk.etl.domain.QiwkColor;
 import com.qiwkreport.qiwk.etl.flex.domain.LCSColor;
 
@@ -61,7 +60,6 @@ public class ColorProcessor implements ItemProcessor<LCSColor, QiwkColor> {
 		qiwkColor.setCOLORHEXIDECIMALVALUE((String)hashMap.get("COLORHEXIDECIMALVALUE"));
 		qiwkColor.setCOLORNAME((String)hashMap.get("COLORNAME"));
 		qiwkColor.setTHUMBNAIL((String)hashMap.get("THUMBNAIL"));
-		LOGGER.info("qiwkColor---->"+qiwkColor);
 		return qiwkColor;
 	
 	}
@@ -147,7 +145,7 @@ public class ColorProcessor implements ItemProcessor<LCSColor, QiwkColor> {
 		if (flexTypeoid != null) {
 			flexType = FlexTypeCache.getFlexType("OR:com.lcs.wc.flextype.FlexType:" + flexTypeoid.toString());
 		} else {
-			System.out.println("flexTypeoid is null for the child : " + child);
+			LOGGER.error("flexTypeoid is null for the child : " + child);
 		}
 
 		Collection atts = flexType.getAllAttributes(scope, level);

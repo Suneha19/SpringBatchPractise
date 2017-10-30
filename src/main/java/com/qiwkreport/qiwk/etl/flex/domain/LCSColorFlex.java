@@ -24,7 +24,7 @@ public class LCSColorFlex {
 	 * decision.
 	 */
 	@Id
-	@GeneratedValue(strategy=GenerationType.AUTO)
+	//@GeneratedValue(strategy=GenerationType.AUTO)
 	@Column(name = "IDA2A2")
 	private int IDA2A2;
 

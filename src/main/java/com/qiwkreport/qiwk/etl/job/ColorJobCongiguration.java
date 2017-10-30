@@ -79,7 +79,7 @@ public class ColorJobCongiguration{
 	private static final Logger LOGGER = LoggerFactory.getLogger(ColorJobCongiguration.class);
 	
 	
-	//@Bean
+	@Bean
 	public Job colorJob() throws Exception {
 		return configuration.getJobBuilderFactory()
 				.get("ColorJob")

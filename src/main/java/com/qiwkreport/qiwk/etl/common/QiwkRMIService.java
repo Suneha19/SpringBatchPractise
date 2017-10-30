@@ -8,21 +8,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.HashMap;
 
-import org.aopalliance.intercept.MethodInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.remoting.rmi.RmiProxyFactoryBean;
-import org.springframework.remoting.support.RemoteInvocation;
-import org.springframework.remoting.support.RemoteInvocationFactory;
 import org.springframework.stereotype.Component;
 
-import com.amazonaws.services.apigateway.model.Method;
-import com.qiwkreport.qiwk.etl.processor.ColorProcessor;
-import com.qiwkreport.qiwk.etl.transform.QiwkColorTransformRMI;
-
-import wt.method.MethodServer;
 import wt.method.RemoteMethodServer;
 import wt.util.WTProperties;
 
