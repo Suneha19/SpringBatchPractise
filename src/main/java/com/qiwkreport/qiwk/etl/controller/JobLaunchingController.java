@@ -51,7 +51,6 @@ public class JobLaunchingController {
 	@ResponseStatus(code = HttpStatus.ACCEPTED)
 	public String saveData() throws Exception {
 		LOGGER.info("Saving the Data");
-		System.out.println("MAX-Value"+Integer.MAX_VALUE);   
 		saveData.saveLCSColorData();
 		return "Data saved successfully !";
 	}

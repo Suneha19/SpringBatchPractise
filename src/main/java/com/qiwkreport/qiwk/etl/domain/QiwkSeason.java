@@ -1,4 +1,4 @@
-package com.qiwkreport.qiwk.etl.flex.domain;
+package com.qiwkreport.qiwk.etl.domain;
 
 import java.sql.Timestamp;
 import java.util.Date;
